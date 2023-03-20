@@ -8,7 +8,7 @@ from scipy.stats import norm
 
 
 def AnalyticalNormalMeasures(alpha, weights, portfolioValue, riskMeasureTimeIntervalInDay,returns):
-    Loss=-portfolioValue*(returns*weights) #moltiplico per i pesi perchè returns è una matrice num_datexnum_assets e weights è n_assetx1
+    Loss=-portfolioValue*(returns.dot(weights)) #moltiplico per i pesi perchè returns è una matrice num_datexnum_assets e weights è n_assetx1
     Loss_mean=np.mean(Loss)
     Loss_std=np.std(Loss)
     VaR_std=norm.ppf(alpha)

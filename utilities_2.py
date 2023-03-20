@@ -2,6 +2,7 @@ import numpy as np
 from numpy import linalg
 import math
 import scipy.stats as st
+import random
 
 
 def HSMeasurements(returns, alpha, weights, portfolioValue, RiskMeasureTimeIntervalInDay):
@@ -62,3 +63,11 @@ def PrincCompAnalysis(yearlyCovariance, yearlyMeanReturns, weights, H, alpha, nu
     ES = portfolioValue*(mean_red + sigma_red*st.norm.pdf(st.norm.ppf(alpha))/(1 - alpha))
     return[ES, VaR]
 
+
+def bootstrapStatistical(numberOfSamplesToBootstrap, returns, alpha, portfolioValue, RiskMeasureTimeIntervalInDay):
+    n = returns.shape[1]
+    samples = np.zeros(numberOfSamplesToBootstrap, 1)
+    for i in range(numberOfSamplesToBootstrap):
+        x = int(random.randint(0,n-1))
+        samples[i] = HSMeasurements(returns[:, x], alpha, 1, portfolioValue, RiskMeasureTimeIntervalInDay)
+    return samples

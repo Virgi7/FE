@@ -13,7 +13,7 @@ def AnalyticalNormalMeasures(alpha, weights, portfolioValue, riskMeasureTimeInte
     Loss_std=np.std(Loss)
     VaR_std=norm.ppf(alpha)
     VaR=riskMeasureTimeIntervalInDay*Loss_mean+math.sqrt(riskMeasureTimeIntervalInDay)*Loss_std*VaR_std
-    ES_std=norm.pdf(VaR_std)
+    ES_std=norm.pdf(VaR_std)/(1-alpha)
     ES=riskMeasureTimeIntervalInDay*Loss_mean+math.sqrt(riskMeasureTimeIntervalInDay)*Loss_std*ES_std
     return VaR, ES
 

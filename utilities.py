@@ -17,6 +17,7 @@ def AnalyticalNormalMeasures(alpha, weights, portfolioValue, riskMeasureTimeInte
     ES_std=norm.pdf(VaR_std)/(1-alpha) #ES for a std normal is the pdf of a normal evaluated in the VaR of a std normal
     ES=riskMeasureTimeIntervalInDay*Loss_mean+math.sqrt(riskMeasureTimeIntervalInDay)*Loss_std*ES_std #ES expressed in function of ES_std
     return VaR, ES
+
 def read_our_CSV(df):
 
     df = df.fillna(method='ffill')  # we fill the missing values of the stocks with the previous known ones

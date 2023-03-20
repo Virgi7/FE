@@ -2,6 +2,8 @@ import numpy as np
 from numpy import linalg
 import math
 import scipy.stats as st
+
+
 def HSMeasurements(returns, alpha, weights, portfolioValue, RiskMeasureTimeIntervalInDay):
     nsamples = int(returns.shape[0] / RiskMeasureTimeIntervalInDay)
     addedreturns = np.zeros((nsamples, returns.shape[1]))
@@ -40,17 +42,23 @@ def WHSMeasurements(returns, alpha, llambda, weights, portfolioValue, RiskMeasur
     VaR = loss_sorted[i]
     ES = (sum(loss_sorted[1:i] * lambdas_sorted[1:i]) + loss_sorted[0] * lambdas_sorted[0]) / (sum(lambdas_sorted[1:i]) + lambdas[0])
     return[ES, VaR]
+
+
 def PrincCompAnalysis(yearlyCovariance, yearlyMeanReturns, weights, H, alpha, numberOfPrincipalComponents, portfolioValue):
     eigenvalues, eigenvectors = linalg.eigvals(yearlyCovariance)
     gamma = np.zeros((len(eigenvalues), len(eigenvalues)))
     eigenvalues_sorted = sorted(eigenvalues)
+    weights_sorted = weights
+    mean_sorted = yearlyMeanReturns
     for i in range(len(eigenvalues_sorted)):
         gamma[:, i] = eigenvectors[eigenvalues == eigenvalues_sorted[i]]
-    weights_hat = gamma.T.dot(weights)
-    mean_hat = gamma.T.dot(yearlyMeanReturns)
+        weights_sorted[:, i] = weights[eigenvalues == eigenvalues_sorted[i]]
+        mean_sorted[:, i] = yearlyMeanReturns[eigenvalues == eigenvalues_sorted[i]]
+    weights_hat = gamma.T.dot(weights_sorted)
+    mean_hat = gamma.T.dot(mean_sorted)
     sigma_red = (H*sum(eigenvalues_sorted[0:numberOfPrincipalComponents]*weights_hat[0:numberOfPrincipalComponents]**2))**(1/2)
     mean_red = H*sum(mean_hat[0:numberOfPrincipalComponents]*weights_hat[0:numberOfPrincipalComponents]**2)
-    VaR = mean_red + sigma_red*st.norm.ppf(alpha)
-    ES = mean_red + sigma_red*st.norm.pdf(st.norm.ppf(alpha))/(1 - alpha)
+    VaR = portfolioValue*(mean_red + sigma_red*st.norm.ppf(alpha))
+    ES = portfolioValue*(mean_red + sigma_red*st.norm.pdf(st.norm.ppf(alpha))/(1 - alpha))
     return[ES, VaR]
 

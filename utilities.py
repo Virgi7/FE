@@ -26,15 +26,11 @@ def read_our_CSV(df):
     df.fillna(method='ffill', inplace=True)  # we fill the missing values of the stocks with the previous known ones
 
     # We select stocks properly in order to perform the right computation of the returns
-<<<<<<< HEAD
-    df_ptf = df[824:1592]  # we selected 3y from 20-03-2019 bckw. up to 22-03-2016 4,2
-=======
-    df_ptf = df['2016-03-22':'2019-03-20']  # we selected 3y from 20-03-2019 bckw. up to 22-03-2016
->>>>>>> f409da27cd1282f822c34db34f496db521f6831b
+    df_ptf = df['2016-03-18':'2019-03-20']  # we selected 3y from 20-03-2019 bckw. up to 22-03-2016
     df_ptf = df_ptf.loc[:, ['ADSGn.DE', 'ALVG.DE', 'MUVGn.DE',
                             'OREP.PA']]  # we select only the 4 columns corresponding to Adidas, Allianz, Munich RE
     # and l'Oreal
-    df_den = df['2016-03-21':'2019-03-19']  # we selected 3y from one day before 20-03-2019 (19-03-2019) up one day before the last date
+    df_den = df['2016-03-17':'2019-03-19']  # we selected 3y from one day before 20-03-2019 (19-03-2019) up one day before the last date
     # of df_ptf (21-03-2016)
     df_den = df_den.loc[:, ['ADSGn.DE', 'ALVG.DE', 'MUVGn.DE', 'OREP.PA']]
 

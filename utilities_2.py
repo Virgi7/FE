@@ -21,7 +21,7 @@ def HSMeasurements(returns, alpha, weights, portfolioValue, RiskMeasureTimeInter
     VaR = loss_sorted[math.floor(samples * (1 - alpha)) - 1]
     # ES as the mean of the losses greater than the VaR
     ES = np.mean(loss_sorted[0:math.floor(samples * (1 - alpha)) - 1])
-    return [VaR, ES]
+    return VaR, ES
 
 
 def WHSMeasurements(returns, alpha, Lambda, weights, portfolioValue, RiskMeasureTimeIntervalInDay):
@@ -57,7 +57,7 @@ def WHSMeasurements(returns, alpha, Lambda, weights, portfolioValue, RiskMeasure
     # ES as average of losses greater than the VaR
     ES = (sum(loss_sorted[1:i] * lambdas_sorted[1:i]) + loss_sorted[0] * lambdas_sorted[0]) / (
             sum(lambdas_sorted[1:i]) + lambdas[0])
-    return [ES, VaR]
+    return ES, VaR
 
 
 def PrincCompAnalysis(yearlyCovariance, yearlyMeanReturns, weights, H, alpha, numberOfPrincipalComponents,
@@ -86,7 +86,7 @@ def PrincCompAnalysis(yearlyCovariance, yearlyMeanReturns, weights, H, alpha, nu
     # VaR and ES with the usual formulas
     VaR = portfolioValue * (mean_red + sigma_red * st.norm.ppf(alpha))
     ES = portfolioValue * (mean_red + sigma_red * st.norm.pdf(st.norm.ppf(alpha)) / (1 - alpha))
-    return [ES, VaR]
+    return ES, VaR
 
 
 def bootstrapStatistical(numberOfSamplesToBootstrap, returns, weights, alpha, portfolioValue,
@@ -145,7 +145,7 @@ def FullMonteCarloVaR(logReturns, numberOfShares, numberOfPuts, stockPrice, stri
     VaR = loss_sorted[math.floor(samples * (1 - alpha)) - 1]
     # ES as the mean of the losses greater than the VaR
     ES = np.mean(loss_sorted[0:math.floor(samples * (1 - alpha)) - 1])
-    return [VaR, ES]
+    return VaR
 
 
 def DeltaNormalVaR(logReturns, numberOfShares, numberOfPuts, stockPrice, strike, rate, dividend,
@@ -174,4 +174,4 @@ def DeltaNormalVaR(logReturns, numberOfShares, numberOfPuts, stockPrice, strike,
     VaR = loss_sorted[math.floor(samples * (1 - alpha)) - 1]
     # ES as the mean of the losses greater than the VaR
     ES = np.mean(loss_sorted[0:math.floor(samples * (1 - alpha)) - 1])
-    return [VaR, ES]
+    return VaR

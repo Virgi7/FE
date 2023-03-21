@@ -23,7 +23,7 @@ def AnalyticalNormalMeasures(alpha, weights, portfolioValue, riskMeasureTimeInte
 
 
 def read_our_CSV(df):
-    df = df.fillna(method='ffill')  # we fill the missing values of the stocks with the previous known ones
+    #df = df.fillna(method='ffill')  # we fill the missing values of the stocks with the previous known ones
 
     df_ptf = df['2016-03-21':'2019-03-19'] # we selected 3y from 20-03-2019 bckw. up to 22-03-2016
     df_ptf = df_ptf.loc[:, ['ADSGn.DE', 'ALVG.DE', 'MUVGn.DE','OREP.PA']]  # we select only the 4 columns corresponding to Adidas, Allianz, Munich RE and l'Oreal

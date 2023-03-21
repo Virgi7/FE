@@ -17,5 +17,5 @@ weights = np.ones((n_asset, 1))/n_asset  # we consider a equally weighted portfo
 returns = np.log(np_num/np_den)  # computation of the returns
 
 # we call the implemented function to calculate VaR and ES
-VaR, ES = ut2.HSMeasurements(returns, alpha, weights, notional, delta)
-print(VaR, ES)
+VaR = ut2.DeltaNormalVaR(returns[:, 0], 2500, 2500, 26.8, 25, 0, 0.031, 0.154, 1/3, 1/260, alpha, 260)
+print(VaR)

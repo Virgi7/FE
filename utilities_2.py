@@ -168,7 +168,7 @@ def DeltaNormalVaR(logReturns, numberOfShares, numberOfPuts, stockPrice, strike,
         # B&S formula applied to the simulated stock price
         simulated_sens[i] = BS_PUT_delta(simulated_stock[i], strike, TTM_simulated, rate, dividend, volatility)
     # simulated linearized losses
-    loss = - numberOfPuts * sum(simulated_sens * added_returns)
+    loss = - numberOfPuts * sum(simulated_sens * added_returns) - numberOfShares * sum(added_returns)
     loss_sorted = sorted(loss)
     # VaR as the 1 - alpha quantile of the loss distribution
     VaR = loss_sorted[math.floor(samples * (1 - alpha)) - 1]

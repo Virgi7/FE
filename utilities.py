@@ -12,25 +12,18 @@ def AnalyticalNormalMeasures(alpha, weights, portfolioValue, riskMeasureTimeInte
     Loss_mean = np.mean(Loss)  # We calculate the mean of losses
     Loss_std = np.std(Loss)  # We calculate the standard deviation of losses
     VaR_std = norm.ppf(alpha)  # VaR of a std normal is the inverse of the cdf evaluated in alpha (N^(-1)(alpha))
-    VaR = riskMeasureTimeIntervalInDay * Loss_mean + math.sqrt(
-        riskMeasureTimeIntervalInDay) * Loss_std * VaR_std  # VaR expressed in function of VaR_std with delta=current
+    VaR = riskMeasureTimeIntervalInDay * Loss_mean + math.sqrt(riskMeasureTimeIntervalInDay) * Loss_std * VaR_std  # VaR expressed in function of VaR_std with delta=current
     # time window (1 in this case)
-    ES_std = norm.pdf(VaR_std) / (
-                1 - alpha)  # ES for a std normal is the pdf of a normal evaluated in the VaR of a std normal
-    ES = riskMeasureTimeIntervalInDay * Loss_mean + math.sqrt(
-        riskMeasureTimeIntervalInDay) * Loss_std * ES_std  # ES expressed in function of ES_std
+    ES_std = norm.pdf(VaR_std) / (1 - alpha)  # ES for a std normal is the pdf of a normal evaluated in the VaR of a std normal
+    ES = riskMeasureTimeIntervalInDay * Loss_mean + math.sqrt(riskMeasureTimeIntervalInDay) * Loss_std * ES_std  # ES expressed in function of ES_std
     return VaR, ES
 
 
 def read_our_CSV(df):
     df.fillna(method='ffill', inplace=True)  # we fill the missing values of the stocks with the previous known ones
 
-    # We select stocks properly in order to perform the right computation of the returns
-<<<<<<< HEAD
-    df_ptf = df[824:1592]  # we selected 3y from 20-03-2019 bckw. up to 22-03-2016 4,2
-=======
     df_ptf = df['2016-03-22':'2019-03-20']  # we selected 3y from 20-03-2019 bckw. up to 22-03-2016
->>>>>>> f409da27cd1282f822c34db34f496db521f6831b
+
     df_ptf = df_ptf.loc[:, ['ADSGn.DE', 'ALVG.DE', 'MUVGn.DE',
                             'OREP.PA']]  # we select only the 4 columns corresponding to Adidas, Allianz, Munich RE
     # and l'Oreal

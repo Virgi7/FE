@@ -10,7 +10,7 @@ def HSMeasurements(returns, alpha, weights, portfolioValue, RiskMeasureTimeInter
     samples = int(returns.shape[0] - RiskMeasureTimeIntervalInDay + 1)
     added_returns = np.zeros((samples, returns.shape[1]))
     for i in range(samples):
-        for j in range(i * RiskMeasureTimeIntervalInDay, (i + RiskMeasureTimeIntervalInDay)):
+        for j in range(i, (i + RiskMeasureTimeIntervalInDay)):
             # we add the returns over the time interval [i, i + RiskMeasureTimeIntervalInDay]
             added_returns[i, :] = added_returns[i, :] + returns[j, :]
     # linearized loss of the portfolio, there is no cost term
@@ -35,7 +35,7 @@ def WHSMeasurements(returns, alpha, Lambda, weights, portfolioValue, RiskMeasure
         lambdas[i] = C * Lambda ** i
     added_returns = np.zeros((samples, returns.shape[1]))
     for i in range(samples):
-        for j in range(i * RiskMeasureTimeIntervalInDay, (i + RiskMeasureTimeIntervalInDay)):
+        for j in range(i, (i + RiskMeasureTimeIntervalInDay)):
             # we add the returns over the time interval [i, i + RiskMeasureTimeIntervalInDay]
             added_returns[i, :] = added_returns[i, :] + returns[j, :]
     # linearized loss of the portfolio multiplied by the weights of the WHS
@@ -103,3 +103,33 @@ def bootstrapStatistical(numberOfSamplesToBootstrap, returns, weights, alpha, po
     return samples
 
 
+def BS_PUT(S, K, T, r, d, sigma):
+    d1 = (np.log(S/K) + (r-d + sigma**2/2)*T) / (sigma*np.sqrt(T))
+    d2 = d1 - sigma* np.sqrt(T)
+    return K*np.exp(-r*T)*st.norm.cdf(-d2) - S*np.exp(-d*T)*st.norm.cdf(-d1)
+
+
+def FullMonteCarloVaR(logReturns, numberOfShares, numberOfPuts, stockPrice, strike, rate, dividend,
+                            volatility, timeToMaturityInYears, riskMeasureTimeIntervalInYears, alpha,NumberOfDaysPerYears):
+    # length of the time interval
+    delta = riskMeasureTimeIntervalInYears * NumberOfDaysPerYears
+    # number of returns we consider, we will add the returns over the corresponding time intervals
+    samples = int(logReturns.shape[0] - delta + 1)
+    added_returns = np.zeros((samples, logReturns.shape[1]))
+    for i in range(samples):
+        for j in range(i, (i + delta)):
+            # we add the returns over the time interval [i, i + RiskMeasureTimeIntervalInDay]
+            added_returns[i, :] = added_returns[i, :] + logReturns[j, :]
+    simulated_stock = stockPrice * np.exp(added_returns)
+    TTM_simulated = timeToMaturityInYears - riskMeasureTimeIntervalInYears
+    simulated_put = np.zeros(len(simulated_stock),1)
+    for i in range(len(simulated_stock)):
+        simulated_put[i] = BS_PUT(simulated_stock[i], strike, TTM_simulated, rate, dividend, volatility)
+    putPrice = BS_PUT(stockPrice, strike, timeToMaturityInYears, rate, dividend, volatility)
+    loss = - numberOfShares * (simulated_stock - stockPrice * np.ones((len(simulated_stock),1))) - numberOfPuts * (simulated_put - putPrice * np.ones((len(simulated_put),1)))
+    loss_sorted = sorted(loss)
+    # VaR as the 1 - alpha quantile of the loss distribution
+    VaR = loss_sorted[math.floor(samples * (1 - alpha)) - 1]
+    # ES as the mean of the losses greater than the VaR
+    ES = np.mean(loss_sorted[0:math.floor(samples * (1 - alpha)) - 1])
+    return [VaR, ES]

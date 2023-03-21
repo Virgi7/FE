@@ -101,3 +101,5 @@ def bootstrapStatistical(numberOfSamplesToBootstrap, returns, weights, alpha, po
         # i-th simulated risk measure
         samples[i] = HSMeasurements(returns[:, 0:x], alpha, weights, portfolioValue, RiskMeasureTimeIntervalInDay)
     return samples
+
+

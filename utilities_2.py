@@ -14,13 +14,13 @@ def HSMeasurements(returns, alpha, weights, portfolioValue, RiskMeasureTimeInter
             # we add the returns over the time interval [i, i + RiskMeasureTimeIntervalInDay]
             added_returns[i, :] = added_returns[i, :] + returns[j, :]
     # linearized loss of the portfolio, there is no cost term
-    loss = -portfolioValue * added_returns.dot(weights)
+    loss = - portfolioValue * added_returns.dot(weights)
     # we order the losses in decreasing order
     loss_sorted = sorted(loss)
     # VaR as the 1 - alpha quantile of the loss distribution
-    VaR = loss_sorted[math.floor(samples * (1 - alpha)) - 1]
+    VaR = float(loss_sorted[int(math.floor(samples * alpha))])
     # ES as the mean of the losses greater than the VaR
-    ES = np.mean(loss_sorted[0:math.floor(samples * (1 - alpha)) - 1])
+    ES = np.mean(loss_sorted[int(math.floor(samples * alpha))::])
     return VaR, ES
 
 
@@ -143,8 +143,6 @@ def FullMonteCarloVaR(logReturns, numberOfShares, numberOfPuts, stockPrice, stri
     loss_sorted = sorted(loss)
     # VaR as the 1 - alpha quantile of the loss distribution
     VaR = loss_sorted[math.floor(samples * (1 - alpha)) - 1]
-    # ES as the mean of the losses greater than the VaR
-    ES = np.mean(loss_sorted[0:math.floor(samples * (1 - alpha)) - 1])
     return VaR
 
 
@@ -172,6 +170,4 @@ def DeltaNormalVaR(logReturns, numberOfShares, numberOfPuts, stockPrice, strike,
     loss_sorted = sorted(loss)
     # VaR as the 1 - alpha quantile of the loss distribution
     VaR = loss_sorted[math.floor(samples * (1 - alpha)) - 1]
-    # ES as the mean of the losses greater than the VaR
-    ES = np.mean(loss_sorted[0:math.floor(samples * (1 - alpha)) - 1])
     return VaR

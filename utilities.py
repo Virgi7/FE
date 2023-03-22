@@ -19,18 +19,17 @@ def AnalyticalNormalMeasures(alpha, weights, portfolioValue, riskMeasureTimeInte
     return VaR, ES
 
 
-def read_our_CSV(df):
+def read_our_CSV(df, name_stocks, dates_num, dates_den):
     df.fillna(method='ffill', inplace=True)  # we fill the missing values of the stocks with the previous known ones
 
     # We select stocks properly in order to perform the right computation of the returns
-    df_ptf = df['2016-03-18':'2019-03-20']  # we selected 3y from 20-03-2019 bckw. up to 22-03-2016
+    df_ptf = df[dates_num[0]:dates_num[1]]  # we selected 3y from 20-03-2019 bckw. up to 22-03-2016
 
-    df_ptf = df_ptf.loc[:, ['ADSGn.DE', 'ALVG.DE', 'MUVGn.DE',
-                            'OREP.PA']]  # we select only the 4 columns corresponding to Adidas, Allianz, Munich RE
+    df_ptf = df_ptf.loc[:, name_stocks]  # we select only the 4 columns corresponding to Adidas, Allianz, Munich RE
     # and l'Oreal
-    df_den = df['2016-03-17':'2019-03-19']  # we selected 3y from one day before 20-03-2019 (19-03-2019) up one day before the last date
+    df_den = df[dates_den[0]:dates_den[1]]  # we selected 3y from one day before 20-03-2019 (19-03-2019) up one day before the last date
     # of df_ptf (21-03-2016)
-    df_den = df_den.loc[:, ['ADSGn.DE', 'ALVG.DE', 'MUVGn.DE', 'OREP.PA']]
+    df_den = df_den.loc[:, name_stocks]
 
     # we pass to numpy arrays to perform the logarithm
     np_den = df_den.to_numpy()

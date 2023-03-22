@@ -90,7 +90,15 @@
       <created>1679315387041</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
+<<<<<<< HEAD
+      <updated>1679311454608</updated>
+      <workItem from="1679311458204" duration="730000" />
+      <workItem from="1679316721411" duration="6194000" />
+      <workItem from="1679328720972" duration="2393000" />
+      <workItem from="1679332170613" duration="44000" />
+=======
       <updated>1679315387041</updated>
+>>>>>>> 57432b91a3094de439a72d7e35a0bcc88161db18
     </task>
     <task id="LOCAL-00001" summary="hello">
       <created>1679316458998</created>
@@ -148,12 +156,19 @@
       </map>
     </option>
   </component>
+<<<<<<< HEAD
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/FE$prova.coverage" NAME="prova Coverage Results" MODIFIED="1679311788483" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/main_py$main1.coverage" NAME="main1 Coverage Results" MODIFIED="1679331123977" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/main_py$utilities.coverage" NAME="utilities Coverage Results" MODIFIED="1679327845323" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+=======
   <component name="VcsManagerConfiguration">
     <MESSAGE value="hello" />
     <MESSAGE value="files" />
     <MESSAGE value="mains" />
     <MESSAGE value="exercise 1" />
     <option name="LAST_COMMIT_MESSAGE" value="exercise 1" />
+<<<<<<< HEAD
 =======
   <component name="PropertiesComponent">{
   &quot;keyToString&quot;: {
@@ -189,5 +204,8 @@
     <SUITE FILE_PATH="coverage/FE$prova.coverage" NAME="prova Coverage Results" MODIFIED="1679311788483" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/main_py$utilities.coverage" NAME="utilities Coverage Results" MODIFIED="1679327845323" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
 >>>>>>> a7e8974224582ea8f8b692aaf7154a2a63922390
+=======
+>>>>>>> 57432b91a3094de439a72d7e35a0bcc88161db18
+>>>>>>> 495ebf9b9c7381d09e3a31d5a69efe8eda563c97
   </component>
 </project>

@@ -22,12 +22,13 @@ def AnalyticalNormalMeasures(alpha, weights, portfolioValue, riskMeasureTimeInte
 def read_our_CSV(df):
     df.fillna(method='ffill', inplace=True)  # we fill the missing values of the stocks with the previous known ones
 
-    df_ptf = df['2016-03-22':'2019-03-20']  # we selected 3y from 20-03-2019 bckw. up to 22-03-2016
+    # We select stocks properly in order to perform the right computation of the returns
+    df_ptf = df['2016-03-18':'2019-03-20']  # we selected 3y from 20-03-2019 bckw. up to 22-03-2016
 
     df_ptf = df_ptf.loc[:, ['ADSGn.DE', 'ALVG.DE', 'MUVGn.DE',
                             'OREP.PA']]  # we select only the 4 columns corresponding to Adidas, Allianz, Munich RE
     # and l'Oreal
-    df_den = df['2016-03-21':'2019-03-19']  # we selected 3y from one day before 20-03-2019 (19-03-2019) up one day before the last date
+    df_den = df['2016-03-17':'2019-03-19']  # we selected 3y from one day before 20-03-2019 (19-03-2019) up one day before the last date
     # of df_ptf (21-03-2016)
     df_den = df_den.loc[:, ['ADSGn.DE', 'ALVG.DE', 'MUVGn.DE', 'OREP.PA']]
 
@@ -35,6 +36,22 @@ def read_our_CSV(df):
     np_den = df_den.to_numpy()
     np_num = df_ptf.to_numpy()
     return np_num, np_den
+
+def plausibilityCheck(returns, portfolioWeights, alpha, portfolioValue, riskMeasureTimeIntervalInDay):
+    l = np.zeros((len(portfolioWeights), 1))
+    u = np.zeros((len(portfolioWeights), 1))
+    sens = np.zeros((len(portfolioWeights), 1))
+    av = np.zeros((len(portfolioWeights), 1))
+    sVaR = np.zeros((len(portfolioWeights), 1))
+    for i in range (len(portfolioWeights)):
+        l[i]=np.quantile(returns[:,i],1-alpha)
+        u[i]=np.quantile(returns[:,i],alpha)
+        sens[i] = portfolioValue * portfolioWeights[i]
+        av[i]=(abs(l[i])+abs(u[i]))/2
+        sVaR[i]=sens[i]*av[i]
+    C=np.corrcoef(returns.T)
+    VaR=math.sqrt((sVaR.T).dot(C.dot(sVaR)))
+    return VaR
 
 
 

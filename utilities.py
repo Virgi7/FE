@@ -14,7 +14,7 @@ def AnalyticalNormalMeasures(alpha, weights, portfolioValue, riskMeasureTimeInte
     VaR_std = norm.ppf(alpha)  # VaR of a std normal is the inverse of the cdf evaluated in alpha (N^(-1)(alpha))
     VaR = riskMeasureTimeIntervalInDay * Loss_mean + math.sqrt(riskMeasureTimeIntervalInDay) * Loss_std * VaR_std  # VaR expressed in function of VaR_std with delta=current
     # time window (1 in this case)
-    ES_std = norm.pdf(VaR_std) / (1 - alpha)  # ES for a std normal is the pdf of a normal evaluated in the VaR of a std normal
+    ES_std = norm.pdf(VaR_std) / (1-alpha)  # ES for a std normal is the pdf of a normal evaluated in the VaR of a std normal
     ES = riskMeasureTimeIntervalInDay * Loss_mean + math.sqrt(riskMeasureTimeIntervalInDay) * Loss_std * ES_std  # ES expressed in function of ES_std
     return VaR, ES
 
@@ -42,6 +42,7 @@ def plausibilityCheck(returns, portfolioWeights, alpha, portfolioValue, riskMeas
     sens = np.zeros((len(portfolioWeights), 1))
     av = np.zeros((len(portfolioWeights), 1))
     sVaR = np.zeros((len(portfolioWeights), 1))
+    C=np.zeros((len(portfolioWeights), len(portfolioWeights)))
     samples = int(returns.shape[0] - riskMeasureTimeIntervalInDay + 1)
     added_returns = np.zeros((samples, returns.shape[1]))
     for i in range(samples):
@@ -50,11 +51,13 @@ def plausibilityCheck(returns, portfolioWeights, alpha, portfolioValue, riskMeas
     for i in range (len(portfolioWeights)):
         l[i]=np.quantile(added_returns[:,i],1-alpha)
         u[i]=np.quantile(added_returns[:,i],alpha)
+        #print(l)
         sens[i] = portfolioValue * portfolioWeights[i]
         av[i]=(abs(l[i])+abs(u[i]))/2
         sVaR[i]=sens[i]*av[i]
     C=np.corrcoef(added_returns.T)
-    VaR=math.sqrt((sVaR.T).dot(C.dot(sVaR)))
+    print(type(sVaR), type(C))
+    VaR=math.sqrt((sVaR.T).dot(C).dot(sVaR))
     return VaR
 
 

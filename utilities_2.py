@@ -18,9 +18,9 @@ def HSMeasurements(returns, alpha, weights, portfolioValue, RiskMeasureTimeInter
     # we order the losses in decreasing order
     loss_sorted = sorted(loss, reverse=True)
     # VaR as the 1 - alpha quantile of the loss distribution
-    VaR = float(loss_sorted[int(math.floor(samples * (1-alpha))-1)])
+    VaR = float(loss_sorted[int(math.floor(samples-1) * (1-alpha))])
     # ES as the mean of the losses greater than the VaR
-    ES = np.mean(loss_sorted[0:int(math.floor(samples * (1-alpha))-1)])
+    ES = np.mean(loss_sorted[0:int(math.floor((samples-1) * (1-alpha)))])
     return ES, VaR
 
 
@@ -62,43 +62,41 @@ def WHSMeasurements(returns, alpha, Lambda, weights, portfolioValue, RiskMeasure
 def PrincCompAnalysis(yearlyCovariance, yearlyMeanReturns, weights, H, alpha, numberOfPrincipalComponents,
                       portfolioValue):
     # spectral decomposition of the variance covariance matrix
-    eigenvalues, eigenvectors = linalg.eigvals(yearlyCovariance)
+    eigenvalues, eigenvectors = linalg.eig(yearlyCovariance)
     gamma = np.zeros((len(eigenvalues), len(eigenvalues)))
     # we order the set of eigenvalues
-    eigenvalues_sorted = sorted(eigenvalues, reverse=True)
+    eigenvalues_sorted = np.sort(eigenvalues)
     weights_sorted = weights
     mean_sorted = yearlyMeanReturns
     for i in range(len(eigenvalues_sorted)):
         # We order the eigenvectors, the weights in the portfolio and the mean vector following the eigenvalues' order
         gamma[:, i] = eigenvectors[eigenvalues == eigenvalues_sorted[i]]
-        weights_sorted[:, i] = weights[eigenvalues == eigenvalues_sorted[i]]
-        mean_sorted[:, i] = yearlyMeanReturns[eigenvalues == eigenvalues_sorted[i]]
-    # Projected weights
+        weights_sorted[i] = weights[eigenvalues == eigenvalues_sorted[i]]
+        mean_sorted[i] = yearlyMeanReturns[eigenvalues == eigenvalues_sorted[i]]
+        # Projected weights
     weights_hat = gamma.T.dot(weights_sorted)
     # Projected mean vector
     mean_hat = gamma.T.dot(mean_sorted)
     # reduced standard deviation
-    sigma_red = (H * sum(
-        eigenvalues_sorted[0:numberOfPrincipalComponents] * weights_hat[0:numberOfPrincipalComponents] ** 2)) ** (1 / 2)
+    sigma_red = (H * (weights_hat[0:numberOfPrincipalComponents] ** 2).T.dot(eigenvalues_sorted[0:numberOfPrincipalComponents])) ** (1 / 2)
     # reduced mean
     mean_red = H * sum(mean_hat[0:numberOfPrincipalComponents] * weights_hat[0:numberOfPrincipalComponents])
     # VaR and ES with the usual formulas
-    VaR = portfolioValue * (mean_red + sigma_red * st.norm.ppf(alpha))
-    ES = portfolioValue * (mean_red + sigma_red * st.norm.pdf(st.norm.ppf(alpha)) / (1 - alpha))
+    VaR = float(portfolioValue * (mean_red + sigma_red * st.norm.ppf(alpha)))
+    ES = float(portfolioValue * (mean_red + sigma_red * st.norm.pdf(st.norm.ppf(alpha)) / (1 - alpha)))
     return ES, VaR
 
 
-def bootstrapStatistical(numberOfSamplesToBootstrap, returns, weights, alpha, portfolioValue,
-                         RiskMeasureTimeIntervalInDay):
+def bootstrapStatistical(numberOfSamplesToBootstrap, returns):
     # number of risk factors
     n = returns.shape[0]
     # we initialize the output
-    samples = np.zeros((numberOfSamplesToBootstrap, 1))
+    samples = np.zeros((numberOfSamplesToBootstrap, returns.shape[1]))
     for i in range(numberOfSamplesToBootstrap):
         # we extract which risk factor use for the simulation
-        x = int(random.randint(0, n))
+        x = int(random.randint(0, n-1))
         # i-th simulated risk measure
-        samples[i] = HSMeasurements(returns[x:n, :], alpha, weights, portfolioValue, RiskMeasureTimeIntervalInDay)[1]
+        samples[i] = returns[x, :]
     return samples
 
 
@@ -141,7 +139,7 @@ def FullMonteCarloVaR(logReturns, numberOfShares, numberOfPuts, stockPrice, stri
            - numberOfPuts * (simulated_put - putPrice * np.ones((len(simulated_put), 1)))
     loss_sorted = sorted(loss, reverse=True)
     # VaR as the 1 - alpha quantile of the loss distribution
-    VaR = float(loss_sorted[math.floor(samples * (1 - alpha))])
+    VaR = float(loss_sorted[int(math.floor(samples - 1) * (1 - alpha))])
     return VaR
 
 
@@ -165,8 +163,8 @@ def DeltaNormalVaR(logReturns, numberOfShares, numberOfPuts, stockPrice, strike,
         # B&S formula applied to the simulated stock price
         simulated_sens[i] = BS_PUT_delta(simulated_stock[i], strike, TTM_simulated, rate, dividend, volatility)
     # simulated linearized losses
-    loss = - stockPrice * (numberOfPuts * (simulated_sens * added_returns) + numberOfShares * added_returns)
+    loss = - numberOfPuts * (simulated_sens * added_returns) - numberOfShares * added_returns
     loss_sorted = sorted(loss, reverse=True)
     # VaR as the 1 - alpha quantile of the loss distribution
-    VaR = float(loss_sorted[math.floor(samples * (1 - alpha))])
+    VaR = float(loss_sorted[int(math.floor(samples - 1) * (1 - alpha))])
     return VaR

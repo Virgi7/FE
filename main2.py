@@ -47,7 +47,8 @@ print(VaR, ES)
 #CHECK
 VaR_check=ut.plausibilityCheck(returns, weights, alpha, notional, delta)
 print(VaR_check)
-VaR_boot = ut2.bootstrapStatistical(200, returns, weights, alpha, notional, delta)
+samples = ut2.bootstrapStatistical(200, returns)
+VaR_boot = ut2.HSMeasurements(samples, alpha, weights, notional, delta)
 print(np.mean(VaR_boot))
 
 # EXERCISE 1
@@ -55,7 +56,7 @@ name_stocks0=['ADSGn.DE', 'AIR.PA', 'BBVA.MC', 'BMWG.DE', 'SCHN.PA']
 dates_num=['2016-03-18','2019-03-20']
 dates_den = ['2016-03-17','2019-03-19']
 
-np_num, np_den=ut.read_our_CSV(df,name_stocks0, dates_num, dates_den)
+np_num, np_den = ut.read_our_CSV(df,name_stocks0, dates_num, dates_den)
 alpha = 0.99
 weights = 0.2 * np.ones((len(name_stocks0),1))
 notional = 10000000
@@ -80,7 +81,7 @@ weights = 0.05 * np.ones((len(name_stocks0),1))
 notional = 100000000
 delta = 10
 returns = np.log(np_num/np_den)
-yearlyCovariance = np.cov(returns)
+yearlyCovariance = np.cov(returns.T)
 yearlyMeanReturns = np.zeros((20, 1))
 for i in range(20):
     yearlyMeanReturns[i] = np.mean(returns[:, i])
@@ -117,7 +118,7 @@ end = datetime.strptime(expiry, "%Y-%m-%d")
 diff = end - start
 timeToMaturityInYears=diff.days/365
 riskMeasureTimeIntervalInYears=days_VaR/365
-NumberOfDaysPerYears=365
+NumberOfDaysPerYears=260
 logReturns=np.log(np_num2/np_den2)
 VaR_MC=ut2.FullMonteCarloVaR(logReturns, numberOfShares, numberOfPuts, stockPrice, strike, rate, dividend,
                             volatility, timeToMaturityInYears, riskMeasureTimeIntervalInYears, alpha, NumberOfDaysPerYears)

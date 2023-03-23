@@ -18,6 +18,7 @@ dates_den = ['2016-03-17','2019-03-19']
 
 np_num, np_den=ut.read_our_CSV(df,name_stocks0, dates_num, dates_den)
 
+
 #Parameters
 alpha=0.95
 notional=1e7
@@ -27,7 +28,11 @@ weights=np.ones((n_asset,1))/n_asset #we consider a equally weighted portfolio
 returns=np.log(np_num/np_den) #computation of the returns
 
 VaR, ES = ut.AnalyticalNormalMeasures(alpha,weights,notional,delta,returns)
+print(VaR, ES)
+
 VaR_check=ut.plausibilityCheck(returns, weights, alpha, notional, delta)
+print(VaR_check)
+
 
 #Exercise 1a
 #Parameters
@@ -45,9 +50,18 @@ weights_1a=(shares1*stockPrice_1a/ptf_value1a).T
 np_num1a, np_den1a=ut.read_our_CSV(df,name_stocks1a, dates_num1, dates_den1)
 logReturns_1a=np.log(np_num1a/np_den1a)
 
+
 ES_HSM, VaR_HSM= ut2.HSMeasurements(logReturns_1a, alpha_1, weights_1a, ptf_value1a, delta)
-samples_Bootstrap=ut2.bootstrapStatistical(Nsim, logReturns_1a, weights_1a, alpha_1, ptf_value1a,
-                         delta)
+print("VaR_HSM:", VaR_HSM,"ES_HSM:", ES_HSM)
+
+#CHECK
+VaR_check_HSM=ut.plausibilityCheck(logReturns_1a, weights_1a, alpha_1, ptf_value1a, delta)
+print(VaR_check_HSM)
+
+samples_Bootstrap=ut2.bootstrapStatistical(Nsim, logReturns_1a)
+VaR_boot = ut2.HSMeasurements(samples_Bootstrap, alpha_1, weights_1a, ptf_value1a, delta)
+print(np.mean(VaR_boot))
+
 
 #Exercise 1b
 #Parameters
@@ -57,12 +71,17 @@ Lambda=0.97
 n_asset1b=len(name_stocks1b)
 weights_1b=np.ones((n_asset1b,1))/n_asset1b
 stockPrice_1b=df.loc[[sett_date1],name_stocks1b].to_numpy()
-ptf_value1b=1
+ptf_value1b=1e7
 
 np_num1b, np_den1b=ut.read_our_CSV(df,name_stocks1b, dates_num1, dates_den1)
 logReturns_1b=np.log(np_num1b/np_den1b)
 
 ES_WHS, VaR_WHS=ut2.WHSMeasurements(logReturns_1b, alpha_1, Lambda, weights_1b, ptf_value1b, delta)
+print("VaR_WHS:", VaR_WHS, "ES_WHS:",ES_WHS)
+#CHECK
+VaR_check_WHS = ut.plausibilityCheck(logReturns_1b, weights_1b, alpha_1, ptf_value1b, delta)
+print(VaR_check_WHS)
+
 
 #Exercise 1c
 #Parameters
@@ -75,24 +94,31 @@ logReturns_1c=np.log(np_num1c/np_den1c)
 
 n_asset1c=len(name_stocks1c)
 weights_1c=np.ones((n_asset1c,1))/n_asset1c
-ptf_value1c=1
+ptf_value1c=1e8
 days_VaR1c=10
 n=range(1,7)
 
 ES_PCA=np.zeros((len(n),1))
 VaR_PCA=np.zeros((len(n),1))
-yearlyCovariance= np.corrcoef(logReturns_1c.T)
-yearlyMeanReturns= np.mean(logReturns_1c, axis=0)
+yearlyCovariance= np.cov(logReturns_1c.T)
+yearlyMeanReturns= np.mean(logReturns_1c, axis=0).reshape((20,1))
+
 for i in n:
-    ES_PCA[i], VaR_PCA[i]= ut2.PrincCompAnalysis(yearlyCovariance, yearlyMeanReturns, weights_1c, days_VaR1c, alpha_1, i,
+    ES_PCA[i-1], VaR_PCA[i-1]= ut2.PrincCompAnalysis(yearlyCovariance, yearlyMeanReturns, weights_1c, days_VaR1c, alpha_1, i,
                       ptf_value1c)
-    
+print("VaR_PCA:", VaR_PCA, "ES_PCA:", ES_PCA)
+
+#CHECK
+VaR_check_PCA = ut.plausibilityCheck(logReturns_1c, weights_1c, alpha_1, ptf_value1c, days_VaR1c)
+print(VaR_check_PCA)
+
+
 #Exercise 2
 #Parameters
-sett_date='2023-01-31'
-expiry='2023-04-05'
+sett_date2='2023-01-31'
+expiry2='2023-04-05'
 strike=25
-value_ptf=25870000
+value_ptf2=25870000
 volatility=0.154
 dividend=0.031
 alpha_2=0.99
@@ -103,24 +129,27 @@ rate=0
 name_stocks2=['VNAn.DE']
 n_asset2=len(name_stocks2)
 weights_2=np.ones((n_asset2,1))/n_asset2
-dates_num=['2021-02-01',sett_date]
-dates_den = ['2021-01-29','2023-01-30']
-np_num2, np_den2=ut.read_our_CSV(df,name_stocks2, dates_num, dates_den)
+dates_num2=['2021-02-01',sett_date2]
+dates_den2 = ['2021-01-29','2023-01-30']
+np_num2, np_den2=ut.read_our_CSV(df,name_stocks2, dates_num2, dates_den2)
 
-stockPrice=np_num2[len(np_num2)-1]
-numberOfShares=value_ptf/stockPrice
+stockPrice_2=np_num2[len(np_num2)-1]
+numberOfShares=value_ptf2/stockPrice_2
 numberOfPuts=numberOfShares
-start = datetime.strptime(sett_date, "%Y-%m-%d")
-end = datetime.strptime(expiry, "%Y-%m-%d")
+start = datetime.strptime(sett_date2, "%Y-%m-%d")
+end = datetime.strptime(expiry2, "%Y-%m-%d")
 diff = end - start
 timeToMaturityInYears=diff.days/365
 riskMeasureTimeIntervalInYears=days_VaR/365
 NumberOfDaysPerYears=np.busday_count('2022-01-01', '2023-01-01')
-logReturns=np.log(np_num2/np_den2)
+logReturns_2=np.log(np_num2/np_den2)
 
-VaR_MC=ut2.FullMonteCarloVaR(logReturns, numberOfShares, numberOfPuts, stockPrice, strike, rate, dividend,                            volatility, timeToMaturityInYears, riskMeasureTimeIntervalInYears, alpha, NumberOfDaysPerYears)
-VaR_DN=ut2.DeltaNormalVaR(logReturns, numberOfShares, numberOfPuts, stockPrice, strike, rate, dividend,
-                            volatility, timeToMaturityInYears, riskMeasureTimeIntervalInYears, alpha, NumberOfDaysPerYears)
+VaR_MC=ut2.FullMonteCarloVaR(logReturns_2, numberOfShares, numberOfPuts, stockPrice_2, strike, rate, dividend,
+                              volatility, timeToMaturityInYears, riskMeasureTimeIntervalInYears, alpha_2, NumberOfDaysPerYears)                         
+VaR_DN=ut2.DeltaNormalVaR(logReturns_2, numberOfShares, numberOfPuts, stockPrice_2, strike, rate, dividend,                            
+                            volatility, timeToMaturityInYears, riskMeasureTimeIntervalInYears, alpha_2, NumberOfDaysPerYears)
+print("VaR_MC:", VaR_MC, "VaR_DN:", VaR_DN)
 
 #CHECK
-VaR_check2=ut.plausibilityCheck(logReturns, weights_2, alpha_2, value_ptf, days_VaR)
+VaR_check2=ut.plausibilityCheck(logReturns_2, weights_2, alpha_2, value_ptf2, days_VaR)
+print(VaR_check2)

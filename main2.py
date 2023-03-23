@@ -25,10 +25,10 @@ n_asset=4
 weights=np.ones((n_asset,1))/n_asset
 returns=np.log(np_num/np_den)
 VaR, ES=ut.AnalyticalNormalMeasures(alpha, weights, notional, delta, returns)
-print(VaR, ES)
+print("es 0", VaR, ES)
 #CHECK
 VaR_check=ut.plausibilityCheck(returns, weights, alpha, notional, delta)
-print(VaR_check)
+print("check 0", VaR_check)
 
 # EXERCISE 1
 name_stocks0=['TTEF.PA', 'DANO.PA', 'SASY.PA', 'VOWG_p.DE']
@@ -44,13 +44,13 @@ delta = 1
 weights = shares*np_num[k, :] / notional
 returns = np.log(np_num/np_den)
 ES, VaR = ut2.HSMeasurements(returns, alpha, weights, notional, delta)
-print(VaR, ES)
+print("hs", VaR, ES)
 #CHECK
 VaR_check=ut.plausibilityCheck(returns, weights, alpha, notional, delta)
-print(VaR_check)
+print("check hs",VaR_check)
 samples = ut2.bootstrapStatistical(200, returns)
 VaR_boot = ut2.HSMeasurements(samples, alpha, weights, notional, delta)
-print(np.mean(VaR_boot))
+print("boot", np.mean(VaR_boot))
 
 # EXERCISE 1
 name_stocks0=['ADSGn.DE', 'AIR.PA', 'BBVA.MC', 'BMWG.DE', 'SCHN.PA']
@@ -64,10 +64,10 @@ notional = 10000000
 delta = 1
 returns = np.log(np_num/np_den)
 ES, VaR = ut2.WHSMeasurements(returns, alpha, 0.97, weights, notional, delta)
-print(VaR, ES)
+print("whs", VaR, ES)
 #CHECK
 VaR_check = ut.plausibilityCheck(returns, weights, alpha, notional, delta)
-print(VaR_check)
+print("whs", VaR_check)
 
 # EXERCISE 1
 name_stocks0=['ABI.BR', 'AD.AS', 'ADSGn.DE', 'AIR.PA', 'AIRP.PA', 'ALVG.DE', 'ASML.AS', 'AXAF.PA', 'BASFn.DE',
@@ -87,10 +87,10 @@ yearlyMeanReturns = np.zeros((20, 1))
 for i in range(20):
     yearlyMeanReturns[i] = np.mean(returns[:, i])
 ES, VaR = ut2.PrincCompAnalysis(yearlyCovariance, yearlyMeanReturns, weights, delta, 0.99, 6, notional)
-print(VaR, ES)
+print("pca", VaR, ES)
 #CHECK
 VaR_check = ut.plausibilityCheck(returns, weights, alpha, notional, delta)
-print(VaR_check)
+print("check pca", VaR_check)
 
 #Exercise 2
 #Parameters
@@ -125,4 +125,4 @@ VaR_MC=ut2.FullMonteCarloVaR(logReturns, numberOfShares, numberOfPuts, stockPric
                             volatility, timeToMaturityInYears, riskMeasureTimeIntervalInYears, alpha, NumberOfDaysPerYears)
 VaR_DN=ut2.DeltaNormalVaR(logReturns, numberOfShares, numberOfPuts, stockPrice, strike, rate, dividend,
                             volatility, timeToMaturityInYears, riskMeasureTimeIntervalInYears, alpha, NumberOfDaysPerYears)
-print(VaR_MC, VaR_DN)
+print("mc", VaR_MC, VaR_DN)

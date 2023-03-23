@@ -9,6 +9,7 @@ import scipy.stats as stat
 import math
 import utilities as ut
 import utilities_2 as ut2
+from scipy.interpolate import interpolate
 
 df=pd.read_csv('EUROSTOXX50_2023_Dataset.csv', index_col=0)
 #df = df.fillna(method='ffill')

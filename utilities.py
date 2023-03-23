@@ -42,13 +42,12 @@ def plausibilityCheck(returns, portfolioWeights, alpha, portfolioValue, riskMeas
     sens = np.zeros((len(portfolioWeights), 1))
     av = np.zeros((len(portfolioWeights), 1))
     sVaR = np.zeros((len(portfolioWeights), 1))
-    C=np.zeros((len(portfolioWeights), len(portfolioWeights)))
     samples = int(returns.shape[0] - riskMeasureTimeIntervalInDay + 1)
     added_returns = np.zeros((samples, returns.shape[1]))
     for i in range(samples):
         for j in range(i, (i + riskMeasureTimeIntervalInDay)):
             added_returns[samples - 1 - i, :] = added_returns[samples - 1 - i, :] + returns[returns.shape[0] - 1 - j, :]
-    for i in range (len(portfolioWeights)):
+    for i in range(len(portfolioWeights)):
         l[i]=np.quantile(added_returns[:,i],1-alpha)
         u[i]=np.quantile(added_returns[:,i],alpha)
         #print(l)
@@ -56,7 +55,6 @@ def plausibilityCheck(returns, portfolioWeights, alpha, portfolioValue, riskMeas
         av[i]=(abs(l[i])+abs(u[i]))/2
         sVaR[i]=sens[i]*av[i]
     C=np.corrcoef(added_returns.T)
-    print(type(sVaR), type(C))
     VaR=math.sqrt((sVaR.T).dot(C).dot(sVaR))
     return VaR
 

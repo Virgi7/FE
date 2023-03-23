@@ -18,9 +18,9 @@ def HSMeasurements(returns, alpha, weights, portfolioValue, RiskMeasureTimeInter
     # we order the losses in decreasing order
     loss_sorted = sorted(loss, reverse=True)
     # VaR as the 1 - alpha quantile of the loss distribution
-    VaR = float(loss_sorted[int(math.floor(samples * (1-alpha)))])
+    VaR = float(loss_sorted[int(math.floor(samples * (1-alpha))-1)])
     # ES as the mean of the losses greater than the VaR
-    ES = np.mean(loss_sorted[0:int(math.floor(samples * (1-alpha)))])
+    ES = np.mean(loss_sorted[0:int(math.floor(samples * (1-alpha))-1)])
     return ES, VaR
 
 
@@ -39,7 +39,7 @@ def WHSMeasurements(returns, alpha, Lambda, weights, portfolioValue, RiskMeasure
             # we add the returns over the time interval [i, i + RiskMeasureTimeIntervalInDay]
             added_returns[samples - 1 - i, :] = added_returns[samples - 1 - i, :] + returns[returns.shape[0] - 1 - j, :]
     # linearized loss of the portfolio multiplied by the weights of the WHS
-    loss = -portfolioValue * added_returns.dot(weights) * lambdas
+    loss = -portfolioValue * added_returns.dot(weights)
     # we order the losses in decreasing order
     loss_sorted = sorted(loss, reverse=True)
     lambdas_sorted = lambdas
@@ -51,7 +51,7 @@ def WHSMeasurements(returns, alpha, Lambda, weights, portfolioValue, RiskMeasure
     lambdas_sum = 0
     while lambdas_sum <= (1 - alpha):
         i += 1
-        lambdas_sum += lambdas_sorted[i]
+        lambdas_sum += lambdas_sorted[i-1]
     # Var as the i-th loss
     VaR = float(loss_sorted[i])
     # ES as average of losses greater than the VaR
@@ -137,10 +137,11 @@ def FullMonteCarloVaR(logReturns, numberOfShares, numberOfPuts, stockPrice, stri
     # price today of the put option
     putPrice = BS_PUT(stockPrice, strike, timeToMaturityInYears, rate, dividend, volatility)
     # simulated losses
-    loss = - numberOfShares * (simulated_stock - stockPrice * np.ones((len(simulated_stock), 1))) - numberOfPuts * (simulated_put - putPrice * np.ones((len(simulated_put), 1)))
+    loss = - numberOfShares * (simulated_stock - stockPrice * np.ones((len(simulated_stock), 1))) \
+           - numberOfPuts * (simulated_put - putPrice * np.ones((len(simulated_put), 1)))
     loss_sorted = sorted(loss, reverse=True)
     # VaR as the 1 - alpha quantile of the loss distribution
-    VaR = float(loss_sorted[math.floor(samples * (1 - alpha)) - 1])
+    VaR = float(loss_sorted[math.floor(samples * (1 - alpha))])
     return VaR
 
 
@@ -164,8 +165,8 @@ def DeltaNormalVaR(logReturns, numberOfShares, numberOfPuts, stockPrice, strike,
         # B&S formula applied to the simulated stock price
         simulated_sens[i] = BS_PUT_delta(simulated_stock[i], strike, TTM_simulated, rate, dividend, volatility)
     # simulated linearized losses
-    loss = - numberOfPuts * (simulated_sens * added_returns) - numberOfShares * added_returns
+    loss = - stockPrice * (numberOfPuts * (simulated_sens * added_returns) + numberOfShares * added_returns)
     loss_sorted = sorted(loss, reverse=True)
     # VaR as the 1 - alpha quantile of the loss distribution
-    VaR = float(loss_sorted[math.floor(samples * (1 - alpha)) - 1])
+    VaR = float(loss_sorted[math.floor(samples * (1 - alpha))])
     return VaR

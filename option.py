@@ -20,7 +20,7 @@ def tree_gen(sigma, steps, S0, delta, T):#T è la maturity
 def priceCliquet(S0, disc, tree, n, q, rec, SurProbFun, datesInYears):
     # Survival probabilities for the expires in datesInYears (T=0 is included)
     survProb = [SurProbFun(T) for T in datesInYears]
-    defProb = survProb[0:len(survProb)-2] - survProb[1:len(survProb)-1]
+    defProb = [SurProbFun(T-1)-SurProbFun(T) for T in datesInYears]
     T = datesInYears[len(datesInYears)-1]
     payoff = tree
     for i in range(T-1):

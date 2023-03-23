@@ -18,9 +18,9 @@ def HSMeasurements(returns, alpha, weights, portfolioValue, RiskMeasureTimeInter
     # we order the losses in decreasing order
     loss_sorted = sorted(loss, reverse=True)
     # VaR as the 1 - alpha quantile of the loss distribution
-    VaR = float(loss_sorted[int(math.floor(samples * (1-alpha)))])
+    VaR = float(loss_sorted[int(math.floor(samples-1) * (1-alpha))])
     # ES as the mean of the losses greater than the VaR
-    ES = np.mean(loss_sorted[0:int(math.floor(samples * (1-alpha)))])
+    ES = np.mean(loss_sorted[0:int(math.floor((samples-1) * (1-alpha)))])
     return ES, VaR
 
 
@@ -39,7 +39,7 @@ def WHSMeasurements(returns, alpha, Lambda, weights, portfolioValue, RiskMeasure
             # we add the returns over the time interval [i, i + RiskMeasureTimeIntervalInDay]
             added_returns[samples - 1 - i, :] = added_returns[samples - 1 - i, :] + returns[returns.shape[0] - 1 - j, :]
     # linearized loss of the portfolio multiplied by the weights of the WHS
-    loss = -portfolioValue * added_returns.dot(weights) * lambdas
+    loss = -portfolioValue * added_returns.dot(weights)
     # we order the losses in decreasing order
     loss_sorted = sorted(loss, reverse=True)
     lambdas_sorted = lambdas
@@ -51,7 +51,7 @@ def WHSMeasurements(returns, alpha, Lambda, weights, portfolioValue, RiskMeasure
     lambdas_sum = 0
     while lambdas_sum <= (1 - alpha):
         i += 1
-        lambdas_sum += lambdas_sorted[i]
+        lambdas_sum += lambdas_sorted[i-1]
     # Var as the i-th loss
     VaR = float(loss_sorted[i])
     # ES as average of losses greater than the VaR
@@ -62,43 +62,41 @@ def WHSMeasurements(returns, alpha, Lambda, weights, portfolioValue, RiskMeasure
 def PrincCompAnalysis(yearlyCovariance, yearlyMeanReturns, weights, H, alpha, numberOfPrincipalComponents,
                       portfolioValue):
     # spectral decomposition of the variance covariance matrix
-    eigenvalues, eigenvectors = linalg.eigvals(yearlyCovariance)
+    eigenvalues, eigenvectors = linalg.eig(yearlyCovariance)
     gamma = np.zeros((len(eigenvalues), len(eigenvalues)))
     # we order the set of eigenvalues
-    eigenvalues_sorted = sorted(eigenvalues, reverse=True)
+    eigenvalues_sorted = np.sort(eigenvalues)
     weights_sorted = weights
     mean_sorted = yearlyMeanReturns
     for i in range(len(eigenvalues_sorted)):
         # We order the eigenvectors, the weights in the portfolio and the mean vector following the eigenvalues' order
         gamma[:, i] = eigenvectors[eigenvalues == eigenvalues_sorted[i]]
-        weights_sorted[:, i] = weights[eigenvalues == eigenvalues_sorted[i]]
-        mean_sorted[:, i] = yearlyMeanReturns[eigenvalues == eigenvalues_sorted[i]]
-    # Projected weights
+        weights_sorted[i] = weights[eigenvalues == eigenvalues_sorted[i]]
+        mean_sorted[i] = yearlyMeanReturns[eigenvalues == eigenvalues_sorted[i]]
+        # Projected weights
     weights_hat = gamma.T.dot(weights_sorted)
     # Projected mean vector
     mean_hat = gamma.T.dot(mean_sorted)
     # reduced standard deviation
-    sigma_red = (H * sum(
-        eigenvalues_sorted[0:numberOfPrincipalComponents] * weights_hat[0:numberOfPrincipalComponents] ** 2)) ** (1 / 2)
+    sigma_red = (H * (weights_hat[0:numberOfPrincipalComponents] ** 2).T.dot(eigenvalues_sorted[0:numberOfPrincipalComponents])) ** (1 / 2)
     # reduced mean
     mean_red = H * sum(mean_hat[0:numberOfPrincipalComponents] * weights_hat[0:numberOfPrincipalComponents])
     # VaR and ES with the usual formulas
-    VaR = portfolioValue * (mean_red + sigma_red * st.norm.ppf(alpha))
-    ES = portfolioValue * (mean_red + sigma_red * st.norm.pdf(st.norm.ppf(alpha)) / (1 - alpha))
+    VaR = float(portfolioValue * (mean_red + sigma_red * st.norm.ppf(alpha)))
+    ES = float(portfolioValue * (mean_red + sigma_red * st.norm.pdf(st.norm.ppf(alpha)) / (1 - alpha)))
     return ES, VaR
 
 
-def bootstrapStatistical(numberOfSamplesToBootstrap, returns, weights, alpha, portfolioValue,
-                         RiskMeasureTimeIntervalInDay):
+def bootstrapStatistical(numberOfSamplesToBootstrap, returns):
     # number of risk factors
     n = returns.shape[0]
     # we initialize the output
-    samples = np.zeros((numberOfSamplesToBootstrap, 1))
+    samples = np.zeros((numberOfSamplesToBootstrap, returns.shape[1]))
     for i in range(numberOfSamplesToBootstrap):
         # we extract which risk factor use for the simulation
-        x = int(random.randint(0, n))
+        x = int(random.randint(0, n-1))
         # i-th simulated risk measure
-        samples[i] = HSMeasurements(returns[x:n, :], alpha, weights, portfolioValue, RiskMeasureTimeIntervalInDay)[1]
+        samples[i] = returns[x, :]
     return samples
 
 
@@ -137,10 +135,11 @@ def FullMonteCarloVaR(logReturns, numberOfShares, numberOfPuts, stockPrice, stri
     # price today of the put option
     putPrice = BS_PUT(stockPrice, strike, timeToMaturityInYears, rate, dividend, volatility)
     # simulated losses
-    loss = - numberOfShares * (simulated_stock - stockPrice * np.ones((len(simulated_stock), 1))) - numberOfPuts * (simulated_put - putPrice * np.ones((len(simulated_put), 1)))
+    loss = - numberOfShares * (simulated_stock - stockPrice * np.ones((len(simulated_stock), 1))) \
+           - numberOfPuts * (simulated_put - putPrice * np.ones((len(simulated_put), 1)))
     loss_sorted = sorted(loss, reverse=True)
     # VaR as the 1 - alpha quantile of the loss distribution
-    VaR = float(loss_sorted[math.floor(samples * (1 - alpha)) - 1])
+    VaR = float(loss_sorted[int(math.floor(samples - 1) * (1 - alpha))])
     return VaR
 
 
@@ -167,5 +166,5 @@ def DeltaNormalVaR(logReturns, numberOfShares, numberOfPuts, stockPrice, strike,
     loss = - numberOfPuts * (simulated_sens * added_returns) - numberOfShares * added_returns
     loss_sorted = sorted(loss, reverse=True)
     # VaR as the 1 - alpha quantile of the loss distribution
-    VaR = float(loss_sorted[math.floor(samples * (1 - alpha)) - 1])
+    VaR = float(loss_sorted[int(math.floor(samples - 1) * (1 - alpha))])
     return VaR

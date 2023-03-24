@@ -28,10 +28,10 @@ weights=np.ones((n_asset,1))/n_asset #we consider a equally weighted portfolio
 returns=np.log(np_num/np_den) #computation of the returns
 
 VaR, ES = ut.AnalyticalNormalMeasures(alpha,weights,notional,delta,returns)
-print(VaR, ES)
+print("VaR_0:", VaR, "ES_0:", ES)
 
 VaR_check=ut.plausibilityCheck(returns, weights, alpha, notional, delta)
-print(VaR_check)
+print("VaR check_0:", VaR_check)
 
 
 #Exercise 1a
@@ -56,11 +56,11 @@ print("VaR_HSM:", VaR_HSM,"ES_HSM:", ES_HSM)
 
 #CHECK
 VaR_check_HSM=ut.plausibilityCheck(logReturns_1a, weights_1a, alpha_1, ptf_value1a, delta)
-print(VaR_check_HSM)
+print("VaR_check_HSM:", VaR_check_HSM)
 
 samples_Bootstrap=ut2.bootstrapStatistical(Nsim, logReturns_1a)
 VaR_boot = ut2.HSMeasurements(samples_Bootstrap, alpha_1, weights_1a, ptf_value1a, delta)
-print(np.mean(VaR_boot))
+print("VaR_Bootstrap:", np.mean(VaR_boot))
 
 
 #Exercise 1b
@@ -80,7 +80,7 @@ ES_WHS, VaR_WHS=ut2.WHSMeasurements(logReturns_1b, alpha_1, Lambda, weights_1b, 
 print("VaR_WHS:", VaR_WHS, "ES_WHS:",ES_WHS)
 #CHECK
 VaR_check_WHS = ut.plausibilityCheck(logReturns_1b, weights_1b, alpha_1, ptf_value1b, delta)
-print(VaR_check_WHS)
+print("VaR_check_WHS:", VaR_check_WHS)
 
 
 #Exercise 1c
@@ -110,7 +110,7 @@ print("VaR_PCA:", VaR_PCA, "ES_PCA:", ES_PCA)
 
 #CHECK
 VaR_check_PCA = ut.plausibilityCheck(logReturns_1c, weights_1c, alpha_1, ptf_value1c, days_VaR1c)
-print(VaR_check_PCA)
+print("VaR_check_PCA:", VaR_check_PCA)
 
 
 #Exercise 2
@@ -152,4 +152,4 @@ print("VaR_MC:", VaR_MC, "VaR_DN:", VaR_DN)
 
 #CHECK
 VaR_check2=ut.plausibilityCheck(logReturns_2, weights_2, alpha_2, value_ptf2, days_VaR)
-print(VaR_check2)
+print("VaR_check2:",VaR_check2)

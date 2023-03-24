@@ -47,11 +47,11 @@ def WHSMeasurements(returns, alpha, Lambda, weights, portfolioValue, RiskMeasure
         # we order the weights of the WHS following the order of the losses
         lambdas_sorted[i] = lambdas[loss == loss_sorted[i]]
     # we find the greatest i such that sum(lambdas[i:end]) <= 1 - alpha
-    i = 0
+    i = -1
     lambdas_sum = 0
     while lambdas_sum <= (1 - alpha):
         i += 1
-        lambdas_sum += lambdas_sorted[i-1]
+        lambdas_sum += lambdas_sorted[i]
     # Var as the i-th loss
     VaR = float(loss_sorted[i])
     # ES as average of losses greater than the VaR
@@ -154,16 +154,10 @@ def DeltaNormalVaR(logReturns, numberOfShares, numberOfPuts, stockPrice, strike,
         for j in range(i, (i + delta)):
             # we add the returns over the time interval [i, i + RiskMeasureTimeIntervalInDay]
             added_returns[samples - 1 - i] = added_returns[samples - 1 - i] + logReturns[len(logReturns) - 1 - j]
-    # simulated stock price
-    simulated_stock = stockPrice * np.exp(added_returns)
     # Time to maturity of the put options minus the delta in years
-    TTM_simulated = timeToMaturityInYears - riskMeasureTimeIntervalInYears
-    simulated_sens = np.zeros((len(simulated_stock), 1))
-    for i in range(len(simulated_stock)):
-        # B&S formula applied to the simulated stock price
-        simulated_sens[i] = BS_PUT_delta(simulated_stock[i], strike, TTM_simulated, rate, dividend, volatility)
+    sens = BS_PUT_delta(stockPrice, strike, timeToMaturityInYears, rate, dividend, volatility)
     # simulated linearized losses
-    loss = - numberOfPuts * (simulated_sens * added_returns) - numberOfShares * added_returns
+    loss = - numberOfPuts * stockPrice * sens * added_returns
     loss_sorted = sorted(loss, reverse=True)
     # VaR as the 1 - alpha quantile of the loss distribution
     VaR = float(loss_sorted[int(math.floor(samples - 1) * (1 - alpha))])

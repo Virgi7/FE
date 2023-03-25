@@ -25,13 +25,22 @@ def priceCliquet(S0, disc, tree, n, q, rec, SurProbFun, datesInYears):
     for i in range(T):
         if i == 0:
             for j in range(n):
-                payoff[j, i] += np.max([(tree[j, i] - S0), 0]) * q ** ((i + 1) * n - j) * (1 - q) ** j
+                payoff[j, i] += np.max([tree[j, i] - S0, 0]) * bincoeff(n, j) * (q ** (n - j)) * ((1 - q) ** j)
         else:
-            for j in range(i*n):
-                for k in range(j, j + n + 1):
-                    payoff[k, i] += np.max([(tree[k, i] - tree[j, i-1]), 0]) * q ** ((i + 1) * n - k) * (1 - q) ** k
-    payoff = payoff * disc * (survProb + defProb)
-    price = sum(sum(payoff))
+            for j in range(i * n):
+                for k in range(j, j + n):
+                    payoff[k, i] += np.max([tree[k, i] - tree[j, i - 1], 0]) * bincoeff((i + 1) * n, k) * (q ** ((i + 1) * n - k)) * ((1 - q) ** k)
+    price = payoff * disc * (survProb + defProb)
+    price = sum(sum(price))
     return price
 
+
+def bincoeff(n, k):
+    if k == 0 or k == n:
+        coeff = 1
+    else:
+        a = math.factorial(n)
+        b = math.factorial(k)
+        coeff = a // (b * (n - k))
+    return coeff
 

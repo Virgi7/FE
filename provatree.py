@@ -12,7 +12,8 @@ tree, q = opt.tree_gen(sigma, steps, S0, delta, T)
 
 
 def SurProbFun(t):
-    return np.exp(4 * t * 10 ** (-4))
+    return np.exp(- 4 * t * 10 ** (-4))
 
 
-price = opt.priceCliquet(S0, [0.94, 0.9, 0.88, 0.87], tree, steps * T, q, 0.3, SurProbFun, [1, 2, 3, 4])
+price = opt.priceCliquet(S0, [0.94, 0.9, 0.88, 0.87], tree, steps, q, 0.3, SurProbFun, [1, 2, 3, 4])
+print(price)

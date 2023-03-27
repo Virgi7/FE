@@ -40,12 +40,13 @@ def priceCliquetBS(S0, disc, tree, n, q, sigma, rec, SurProbFun, datesInYears):
     defProb = np.array([(SurProbFun(T-1)-SurProbFun(T))*rec for T in datesInYears])
     T = len(datesInYears)
     payoff = np.zeros(tree.shape)
-    payoff[0, 0] = BS_CALL(S0, S0, datesInYears[0], - np.log(disc[1])/datesInYears[1], 0, sigma)
+    payoff[0, 0] = BS_CALL(S0, S0, datesInYears[0], - np.log(disc[1])/datesInYears[0], 0, sigma)
     for i in range(1, T):
         for j in range(i * n + 1):
             TTM = datesInYears[i] - datesInYears[i - 1]
             payoff[j, i] = BS_CALL(tree[j, i-1], tree[j, i-1], TTM, - np.log(disc[i + 1]/disc[i])/TTM, 0, sigma) * bincoeff(i * n, j) * (q ** (i * n - j)) * ((1 - q) ** j)
     price = payoff * disc[0: len(disc) - 1] * (survProb + defProb)
+    print(price)
     price = sum(sum(price))
     return price
 

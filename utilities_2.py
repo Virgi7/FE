@@ -68,6 +68,8 @@ def PrincCompAnalysis(yearlyCovariance, yearlyMeanReturns, weights, H, alpha, nu
     eigenvalues_sorted = np.sort(eigenvalues)
     weights_sorted = weights
     mean_sorted = yearlyMeanReturns
+    #print(np.shape(yearlyMeanReturns))
+    #print(np.shape(eigenvalues_sorted))
     for i in range(len(eigenvalues_sorted)):
         # We order the eigenvectors, the weights in the portfolio and the mean vector following the eigenvalues' order
         gamma[:, i] = eigenvectors[eigenvalues == eigenvalues_sorted[i]]

@@ -3,7 +3,11 @@ import numpy as np
 import math
 import scipy.stats as st
 # tree_gen(sigma, steps, S0, delta, T) generates the binomial tree for the given underlying asset
-# priceCliquetBS(S0, disc, tree, n, sigma, rec, SurProb, datesInYears)
+# priceCliquetBS(S0, disc, tree, n, sigma, rec, SurProb, datesInYears) prices the cliquet option
+# bincoeff(n, k) computes the binomial coefficient
+# BS_PUT(S, K, T, r, d, sigma) B&S price for Put option
+# BS_PUT_delta(S, K, T, r, d, sigma) B&S delta for Put option
+# BS_CALL(S, K, T, r, d, sigma) B&S price for Call option
 
 
 def tree_gen(sigma, steps, S0, delta, T):# T è la maturity

@@ -133,7 +133,7 @@ rate=0
 name_stocks2=['VNAn.DE']
 n_asset2=len(name_stocks2)
 weights_2=np.ones((n_asset2,1))/n_asset2 #equally weighted ptf
-dates_num2=['2021-02-01',sett_date2]
+dates_num2=['2021-02-01',sett_datke2]
 dates_den2 = ['2021-01-29','2023-01-30'] #2y estimation using the Historical Simulation for the underlying
 np_num2, np_den2=ut.read_our_CSV(df,name_stocks2, dates_num2, dates_den2)
 

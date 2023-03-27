@@ -75,7 +75,6 @@ def PrincCompAnalysis(yearlyCovariance, yearlyMeanReturns, weights, H, alpha, nu
         weights_sorted[i] = weights[eigenvalues.tolist().index(eigenvalues_sorted[i])]
         mean_sorted[i] = yearlyMeanReturns[eigenvalues.tolist().index(eigenvalues_sorted[i])]
     # Projected weights
-    print(mean_sorted)
     weights_hat = gamma.T.dot(weights_sorted)
     # Projected mean vector
     mean_hat = gamma.T.dot(mean_sorted)

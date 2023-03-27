@@ -146,5 +146,5 @@ logReturns_2 = np.log(np_num2 / np_den2)
 # we compute the VaR at 10 days via a Full MonteCarlo approach
 VaR_MC = ut2.FullMonteCarloVaR(logReturns_2, numberOfShares, numberOfPuts, stockPrice_2, strike, rate, dividend, volatility, timeToMaturityInYears, riskMeasureTimeIntervalInYears, alpha_2, NumberOfDaysPerYears)
 # We compute the VaR at 10 days via a Delta Normal approach
-VaR_DN = ut2.DeltaNormalVaR(logReturns_2, numberOfShares, numberOfPuts, stockPrice_2, strike, rate, dividend, volatility, timeToMaturityInYears, riskMeasureTimeIntervalInYears, alpha_2, NumberOfDaysPerYears)
+VaR_DN = ut2.DeltaNormalVaR(logReturns_2, numberOfPuts, stockPrice_2, strike, rate, dividend, volatility, timeToMaturityInYears, riskMeasureTimeIntervalInYears, alpha_2, NumberOfDaysPerYears)
 print("VaR_MC:", VaR_MC, "VaR_DN:", VaR_DN)

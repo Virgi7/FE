@@ -99,7 +99,7 @@ n_asset1c=len(name_stocks1c)
 weights_1c=np.ones((n_asset1c,1))/n_asset1c #we have to consider as above a equally weighted ptf
 ptf_value1c=1e8
 days_VaR1c=10 #now the VaR must be computed at 10 days
-n=range(1,7) #parameter used for the PCA 
+n=range(1, 7) #parameter used for the PCA
 
 #Initialization
 ES_PCA=np.zeros((len(n),1))
@@ -107,10 +107,9 @@ VaR_PCA=np.zeros((len(n),1))
 yearlyCovariance= np.cov(logReturns_1c.T) #we compute the Variance Covariance Matrix of the returns
 yearlyMeanReturns= np.mean(logReturns_1c, axis=0).reshape((20,1)) #we compute the mean of each column (i.e. columns <-> returns of the stocks) of the matrix of the returns,
                                                                     #then we reshape it to have a column vector
-
 for i in n:
     ES_PCA[i-1], VaR_PCA[i-1]= ut2.PrincCompAnalysis(yearlyCovariance, yearlyMeanReturns, weights_1c, days_VaR1c, alpha_1, i, 
-                      ptf_value1c) #for each i in the set of n we compute the PCA increasing at each iteration the number of principal components to be considered
+                    ptf_value1c) #for each i in the set of n we compute the PCA increasing at each iteration the number of principal components to be considered
 print("VaR_PCA:", VaR_PCA, "ES_PCA:", ES_PCA)
 
 #CHECK

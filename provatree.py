@@ -1,6 +1,4 @@
 import numpy as np
-import pandas as pd
-import math
 import option as opt
 
 sigma = 0.25
@@ -9,7 +7,7 @@ S0 = 2.41
 delta = 1
 T = 4
 rec = 0.4
-tree, q = opt.tree_gen(sigma, steps, S0, delta, T)
+tree = opt.tree_gen(sigma, steps, S0, delta, T)
 
 
 def SurProbFun(t):
@@ -20,9 +18,6 @@ def SurProbFun(t):
     return prob
 
 
-price = opt.priceCliquet(S0, [0.968072448, 0.93889066, 0.914635392, 0.89163513], tree, steps, q, 0.4, SurProbFun, [1, 2.0054794521, 3.0054794521, 4.0054794521])
-print(price)
-priceBS = opt.priceCliquetBS(S0, [1, 0.968072448, 0.93889066, 0.914635392, 0.89163513], tree, steps, q, sigma, 0.4, SurProbFun, [1, 2.0054794521, 3.0054794521, 4.0054794521])
+priceBS = opt.priceCliquetBS(S0, [1, 0.968072448, 0.93889066, 0.914635392, 0.89163513], tree, steps, sigma, 0.4, SurProbFun, [1, 2.0054794521, 3.0054794521, 4.0054794521])
 print(priceBS)
-print(50 * (priceBS - price) * 10 ** 6)
 

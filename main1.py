@@ -157,6 +157,3 @@ VaR_DN=ut2.DeltaNormalVaR(logReturns_2, numberOfShares, numberOfPuts, stockPrice
                             volatility, timeToMaturityInYears, riskMeasureTimeIntervalInYears, alpha_2, NumberOfDaysPerYears) #we compute the VaR at 10 days via a Delta Normal approach
 print("VaR_MC:", VaR_MC, "VaR_DN:", VaR_DN)
 
-#CHECK
-VaR_check2=ut.plausibilityCheck(logReturns_2, weights_2, alpha_2, value_ptf2, days_VaR) #check of the result
-print("VaR_check2:",VaR_check2)

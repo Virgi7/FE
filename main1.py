@@ -9,71 +9,67 @@ import math
 import utilities as ut
 import utilities_2 as ut2
 
-df=pd.read_csv('EUROSTOXX50_2023_Dataset.csv', index_col=0) #we read the csv file and convert it in a dataframe on python 
+df = pd.read_csv('EUROSTOXX50_2023_Dataset.csv', index_col=0)  # We read the csv file and convert it in a dataframe on python
 
-name_stocks0=['ADSGn.DE', 'ALVG.DE', 'MUVGn.DE',
-                            'OREP.PA'] #we select the required stocks for the Exercise 0
-dates_num=['2016-03-18','2019-03-20'] #we choose a 3y estimation starting from today (20th March 2019) 
-                                           #and going backward up to the first business day before 21st March 2016
-dates_den = ['2016-03-17','2019-03-19']
+name_stocks0 = ['ADSGn.DE', 'ALVG.DE', 'MUVGn.DE', 'OREP.PA']  # We select the required stocks for the Exercise 0
+dates_num = ['2016-03-18', '2019-03-20']  # We choose a 3y estimation starting from today (20th March 2019)
+dates_den = ['2016-03-17', '2019-03-19']  # And going backward up to the first business day before 21st March 2016
 
-np_num, np_den=ut.read_our_CSV(df,name_stocks0, dates_num, dates_den) #we call our read csv function to convert the dataframe in numpy arrays
-                                                                        #paying attention to the missing values
+# We call our read csv function to convert the dataframe in numpy arrays, paying attention to the missing values
+np_num, np_den = ut.read_our_CSV(df, name_stocks0, dates_num, dates_den)
 
+# Parameters
+alpha = 0.95
+notional = 1e7
+delta = 1
+n_asset = 4
+weights = np.ones((n_asset, 1))/n_asset  # We consider a equally weighted portfolio
+returns = np.log(np_num/np_den)  # Computation of the returns
 
-#Parameters
-alpha=0.95
-notional=1e7
-delta=1
-n_asset=4
-weights=np.ones((n_asset,1))/n_asset #we consider a equally weighted portfolio
-returns=np.log(np_num/np_den) #computation of the returns
-
-VaR, ES = ut.AnalyticalNormalMeasures(alpha,weights,notional,delta,returns) #we compute the VaR and the ES using a Gaussian parametric approach
+VaR, ES = ut.AnalyticalNormalMeasures(alpha, weights, notional, delta, returns)  # We compute the VaR and the ES using a Gaussian parametric approach
 print("VaR_0:", VaR, "ES_0:", ES)
 
-VaR_check=ut.plausibilityCheck(returns, weights, alpha, notional, delta) #we check the result with a Plausibility check to estimate the order of magnitude of portfolio VaR
+VaR_check=ut.plausibilityCheck(returns, weights, alpha, notional, delta)  # We check the result with a Plausibility check to estimate the order of magnitude of portfolio VaR
 print("VaR check_0:", VaR_check)
 
 
-#Exercise 1a
-#Parameters
-sett_date1='2019-03-20'
-alpha_1=0.99
-dates_num1=dates_num
-dates_den1 = dates_den #3y estimation as before
-shares1=np.array([25000, 20000, 20000, 10000])
-Nsim=200
-name_stocks1a=['TTEF.PA', 'DANO.PA', 'SASY.PA', 'VOWG_p.DE'] #we select the required stocks for the Exercise 1a)
+# EXERCISE 1.a
+# Parameters
+sett_date1 = '2019-03-20'
+alpha_1 = 0.99
+dates_num1 = dates_num
+dates_den1 = dates_den  # 3y estimation as before
+shares1 = np.array([25000, 20000, 20000, 10000])
+Nsim = 200
+name_stocks1a = ['TTEF.PA', 'DANO.PA', 'SASY.PA', 'VOWG_p.DE']  # We select the required stocks for the Exercise 1a)
 
-stockPrice_1a=df.loc[[sett_date1],name_stocks1a].to_numpy() #we extract the price of the stocks at the sett_date 
-                                                                #and then we convert the chosen row in a numpy array to perform calculation
-ptf_value1a=shares1.dot(stockPrice_1a.T) #value of the portfolio
-weights_1a=(shares1*stockPrice_1a/ptf_value1a).T #we compute the corresponding weight of each stock related with its number of shares
-np_num1a, np_den1a=ut.read_our_CSV(df,name_stocks1a, dates_num1, dates_den1) 
-logReturns_1a=np.log(np_num1a/np_den1a) 
+stockPrice_1a = df.loc[[sett_date1], name_stocks1a].to_numpy()  # We extract the price of the stocks at the sett_date
+# and then we convert the chosen row in a numpy array to perform calculation
+ptf_value1a = shares1.dot(stockPrice_1a.T)  # Value of the portfolio
+weights_1a = (shares1 * stockPrice_1a / ptf_value1a).T  # We compute the corresponding weight of each stock related with its number of shares
+np_num1a, np_den1a = ut.read_our_CSV(df, name_stocks1a, dates_num1, dates_den1)
+logReturns_1a = np.log(np_num1a / np_den1a)
 
 
-ES_HSM, VaR_HSM= ut2.HSMeasurements(logReturns_1a, alpha_1, weights_1a, ptf_value1a, delta) #we compute the VaR and the ES via a Historical Simulation
-print("VaR_HSM:", VaR_HSM,"ES_HSM:", ES_HSM)
+ES_HSM, VaR_HSM = ut2.HSMeasurements(logReturns_1a, alpha_1, weights_1a, ptf_value1a, delta)  # We compute the VaR and the ES via a Historical Simulation
+print("VaR_HSM:", VaR_HSM, "ES_HSM:", ES_HSM)
 
-#CHECK
-VaR_check_HSM=ut.plausibilityCheck(logReturns_1a, weights_1a, alpha_1, ptf_value1a, delta) #as we did previously we check the result
+# CHECK
+VaR_check_HSM = ut.plausibilityCheck(logReturns_1a, weights_1a, alpha_1, ptf_value1a, delta)  # As we did previously we check the result
 print("VaR_check_HSM:", VaR_check_HSM)
 
-samples_Bootstrap=ut2.bootstrapStatistical(Nsim, logReturns_1a) #we call the Bootstrap function to extract randomly Nsim partial sets of risk factors 
-VaR_boot = ut2.HSMeasurements(samples_Bootstrap, alpha_1, weights_1a, ptf_value1a, delta) #then we pass the samples of risk factors to the HS function to compute the VaR one for each simulation
-print("VaR_Bootstrap:", np.mean(VaR_boot)) #as output we print the mean of the computed VaRs
+samples_Bootstrap = ut2.bootstrapStatistical(Nsim, logReturns_1a)  # We call the Bootstrap function to extract randomly Nsim partial sets of risk factors
+VaR_boot = ut2.HSMeasurements(samples_Bootstrap, alpha_1, weights_1a, ptf_value1a, delta)  # Then we pass the samples of risk factors to the HS function to compute the VaR one for each simulation
+print("VaR_Bootstrap:", np.mean(VaR_boot))  # As output, we print the mean of the computed VaRs
 
 
-#Exercise 1b
-#Parameters
-Nsim=200
-name_stocks1b=['ADSGn.DE', 'AIR.PA', 'BBVA.MC', 'BMWG.DE', 'SCHN.PA'] #we select the required stocks for the Exercise 1b)
-Lambda=0.97
-n_asset1b=len(name_stocks1b)
-weights_1b=np.ones((n_asset1b,1))/n_asset1b #we have to consider a equally weighted ptf
-stockPrice_1b=df.loc[[sett_date1],name_stocks1b].to_numpy() #as before we extract the row corresponding to the value of the stocks on the sett_date
+# EXERCISE 1.b
+# Parameters
+name_stocks1b = ['ADSGn.DE', 'AIR.PA', 'BBVA.MC', 'BMWG.DE', 'SCHN.PA']  # We select the required stocks for the Exercise 1b)
+Lambda = 0.97
+n_asset1b = len(name_stocks1b)
+weights_1b = np.ones((n_asset1b, 1)) / n_asset1b  # We have to consider a equally weighted ptf
+stockPrice_1b = df.loc[[sett_date1],name_stocks1b].to_numpy() #as before we extract the row corresponding to the value of the stocks on the sett_date
 ptf_value1b=1e7 #we set the ptf value equal to the notional 10Mln
 
 np_num1b, np_den1b=ut.read_our_CSV(df,name_stocks1b, dates_num1, dates_den1)

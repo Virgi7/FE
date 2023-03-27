@@ -1,3 +1,4 @@
+# Functions Assignment 5.0
 import numpy as np
 from numpy import linalg
 import math
@@ -45,7 +46,7 @@ def WHSMeasurements(returns, alpha, Lambda, weights, portfolioValue, RiskMeasure
     lambdas_sorted = lambdas
     for i in range(len(loss_sorted)):
         # we order the weights of the WHS following the order of the losses
-        lambdas_sorted[i] = lambdas[loss == loss_sorted[i]]
+        lambdas_sorted[i] = lambdas[loss.tolist().index(loss_sorted[i])]
     # we find the greatest i such that sum(lambdas[i:end]) <= 1 - alpha
     i = -1
     lambdas_sum = 0
@@ -74,7 +75,6 @@ def PrincCompAnalysis(yearlyCovariance, yearlyMeanReturns, weights, H, alpha, nu
         weights_sorted[i] = weights[eigenvalues.tolist().index(eigenvalues_sorted[i])]
         mean_sorted[i] = yearlyMeanReturns[eigenvalues.tolist().index(eigenvalues_sorted[i])]
     # Projected weights
-    print(mean_sorted)
     weights_hat = gamma.T.dot(weights_sorted)
     # Projected mean vector
     mean_hat = gamma.T.dot(mean_sorted)
@@ -89,6 +89,7 @@ def PrincCompAnalysis(yearlyCovariance, yearlyMeanReturns, weights, H, alpha, nu
 
 
 def bootstrapStatistical(numberOfSamplesToBootstrap, returns):
+    random.seed(9)
     # number of risk factors
     n = returns.shape[0]
     # we initialize the output
@@ -144,7 +145,7 @@ def FullMonteCarloVaR(logReturns, numberOfShares, numberOfPuts, stockPrice, stri
     return VaR
 
 
-def DeltaNormalVaR(logReturns, numberOfShares, numberOfPuts, stockPrice, strike, rate, dividend,
+def DeltaNormalVaR(logReturns, numberOfPuts, stockPrice, strike, rate, dividend,
                    volatility, timeToMaturityInYears, riskMeasureTimeIntervalInYears, alpha, NumberOfDaysPerYears):
     # length of the time interval
     delta = int(math.floor(riskMeasureTimeIntervalInYears * NumberOfDaysPerYears))

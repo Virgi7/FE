@@ -1,3 +1,8 @@
+# MAIN ASSIGNMENT 5: EXERCISES 0-2
+# Mangalaviti Matteo
+# Marrone Tiziano
+# Massaria Michele Domenico
+# Vighi Virginia
 import pandas as pd
 import numpy as np
 from datetime import datetime

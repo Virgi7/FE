@@ -89,6 +89,7 @@ def PrincCompAnalysis(yearlyCovariance, yearlyMeanReturns, weights, H, alpha, nu
 
 
 def bootstrapStatistical(numberOfSamplesToBootstrap, returns):
+    random.seed(9)
     # number of risk factors
     n = returns.shape[0]
     # we initialize the output

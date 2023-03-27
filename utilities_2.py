@@ -4,6 +4,7 @@ from numpy import linalg
 import math
 import scipy.stats as st
 import random
+import option as opt
 
 
 def HSMeasurements(returns, alpha, weights, portfolioValue, RiskMeasureTimeIntervalInDay):
@@ -102,19 +103,6 @@ def bootstrapStatistical(numberOfSamplesToBootstrap, returns):
     return samples
 
 
-def BS_PUT(S, K, T, r, d, sigma):
-    # B&S formula for a put option
-    d1 = (np.log(S / K) + (r - d + sigma ** 2 / 2) * T) / (sigma * np.sqrt(T))
-    d2 = d1 - sigma * np.sqrt(T)
-    return K * np.exp(-r * T) * st.norm.cdf(-d2) - S * np.exp(-d * T) * st.norm.cdf(-d1)
-
-
-def BS_PUT_delta(S, K, T, r, d, sigma):
-    # B&S formula for a put option
-    d1 = (np.log(S / K) + (r - d + sigma ** 2 / 2) * T) / (sigma * np.sqrt(T))
-    return - np.exp(-d * T) * st.norm.cdf(-d1)
-
-
 def FullMonteCarloVaR(logReturns, numberOfShares, numberOfPuts, stockPrice, strike, rate, dividend,
                       volatility, timeToMaturityInYears, riskMeasureTimeIntervalInYears, alpha, NumberOfDaysPerYears):
     # length of the time interval
@@ -133,9 +121,9 @@ def FullMonteCarloVaR(logReturns, numberOfShares, numberOfPuts, stockPrice, stri
     simulated_put = np.zeros((len(simulated_stock), 1))
     for i in range(len(simulated_stock)):
         # B&S formula applied to the simulated stock price
-        simulated_put[i] = BS_PUT(simulated_stock[i], strike, TTM_simulated, rate, dividend, volatility)
+        simulated_put[i] = opt.BS_PUT(simulated_stock[i], strike, TTM_simulated, rate, dividend, volatility)
     # price today of the put option
-    putPrice = BS_PUT(stockPrice, strike, timeToMaturityInYears, rate, dividend, volatility)
+    putPrice = opt.BS_PUT(stockPrice, strike, timeToMaturityInYears, rate, dividend, volatility)
     # simulated losses
     loss = - numberOfShares * (simulated_stock - stockPrice * np.ones((len(simulated_stock), 1))) \
            - numberOfPuts * (simulated_put - putPrice * np.ones((len(simulated_put), 1)))
@@ -157,7 +145,7 @@ def DeltaNormalVaR(logReturns, numberOfPuts, stockPrice, strike, rate, dividend,
             # we add the returns over the time interval [i, i + RiskMeasureTimeIntervalInDay]
             added_returns[samples - 1 - i] = added_returns[samples - 1 - i] + logReturns[len(logReturns) - 1 - j]
     # Time to maturity of the put options minus the delta in years
-    sens = BS_PUT_delta(stockPrice, strike, timeToMaturityInYears, rate, dividend, volatility)
+    sens = opt.BS_PUT_delta(stockPrice, strike, timeToMaturityInYears, rate, dividend, volatility)
     # simulated linearized losses
     loss = - numberOfPuts * stockPrice * sens * added_returns
     loss_sorted = sorted(loss, reverse=True)

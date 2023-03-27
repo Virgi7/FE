@@ -1,4 +1,5 @@
 # MAIN ASSIGNMENT 5: EXERCISES 0-2
+# GROUP 9
 # Mangalaviti Matteo
 # Marrone Tiziano
 # Massaria Michele Domenico
@@ -9,6 +10,7 @@ from datetime import datetime
 import utilities as ut
 import utilities_2 as ut2
 
+# EXERCISE 0
 df = pd.read_csv('EUROSTOXX50_2023_Dataset.csv', index_col=0)  # We read the csv file and convert it in a dataframe on python
 name_stocks0 = ['ADSGn.DE', 'ALVG.DE', 'MUVGn.DE', 'OREP.PA']  # We select the required stocks for the Exercise 0
 dates_num = ['2016-03-18', '2019-03-20']  # We choose a 3y estimation starting from today (20th March 2019)

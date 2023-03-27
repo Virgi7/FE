@@ -45,7 +45,7 @@ def WHSMeasurements(returns, alpha, Lambda, weights, portfolioValue, RiskMeasure
     lambdas_sorted = lambdas
     for i in range(len(loss_sorted)):
         # we order the weights of the WHS following the order of the losses
-        lambdas_sorted[i] = lambdas[loss == loss_sorted[i]]
+        lambdas_sorted[i] = lambdas[loss.tolist().index(loss_sorted[i])]
     # we find the greatest i such that sum(lambdas[i:end]) <= 1 - alpha
     i = -1
     lambdas_sum = 0

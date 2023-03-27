@@ -33,7 +33,7 @@ def priceCliquetBS(S0, disc, tree, n, sigma, rec, SurProb, datesInYears):
             TTM = datesInYears[i] - datesInYears[i - 1]
             payoff[j, i] = BS_CALL(tree[j, i-1], tree[j, i-1], TTM, - np.log(disc[i + 1]/disc[i])/TTM, 0, sigma) * bincoeff(i * n, j) * (q ** (i * n - j)) * ((1 - q) ** j)
     # We multiply by the discounts, the survival probabilities and the recovery multiplied by the default probability in each time interval
-    price = payoff * disc[0: len(disc) - 1] * (SurProb + DefProbRec)
+    price = payoff * disc[0: len(disc) - 1] * (SurProb[1: len(SurProb)] + DefProbRec)
     price = sum(sum(price))
     return price
 

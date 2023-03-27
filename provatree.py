@@ -20,6 +20,8 @@ disc = pd.read_excel('dat_disc.xlsx')
 disc=disc.to_numpy()
 print(disc[:,1])
 
+
+
 #Ho messo dentro all'excel solo i discounts che ci interessano e
 #con questo comando li leggo e li trasformo in un numpy
 

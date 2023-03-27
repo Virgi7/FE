@@ -145,7 +145,7 @@ def FullMonteCarloVaR(logReturns, numberOfShares, numberOfPuts, stockPrice, stri
     return VaR
 
 
-def DeltaNormalVaR(logReturns, numberOfShares, numberOfPuts, stockPrice, strike, rate, dividend,
+def DeltaNormalVaR(logReturns, numberOfPuts, stockPrice, strike, rate, dividend,
                    volatility, timeToMaturityInYears, riskMeasureTimeIntervalInYears, alpha, NumberOfDaysPerYears):
     # length of the time interval
     delta = int(math.floor(riskMeasureTimeIntervalInYears * NumberOfDaysPerYears))

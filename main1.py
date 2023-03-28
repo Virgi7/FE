@@ -9,6 +9,7 @@ import numpy as np
 from datetime import datetime
 import utilities as ut
 import utilities_2 as ut2
+import matplotlib.pyplot as plt
 
 # EXERCISE 0
 df = pd.read_csv('EUROSTOXX50_2023_Dataset.csv', index_col=0)  # We read the csv file and convert it in a dataframe on python
@@ -109,7 +110,6 @@ print("VaR_PCA:", VaR_PCA, "ES_PCA:", ES_PCA)
 # CHECK
 VaR_check_PCA = ut.plausibilityCheck(logReturns_1c, weights_1c, alpha_1, ptf_value1c, days_VaR1c)
 print("VaR_check_PCA:", VaR_check_PCA)
-
 
 # EXERCISE 2
 # Parameters

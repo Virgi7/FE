@@ -141,7 +141,7 @@ print("VaR_MC:", VaR_MC, "VaR_DN:", VaR_DN)
 
 # EXERCISE 3, pricing the cliquet option
 sigma = 0.25
-steps = 34
+steps = 24
 S0 = 2.41
 delta = 1
 T = 4
@@ -149,5 +149,5 @@ rec = 0.4
 tree = opt.tree_gen(sigma, steps, S0, delta, T)
 df = pd.read_excel('dat_disc.xlsx')
 df = df.to_numpy()
-priceBS = opt.priceCliquetBS(S0, df[:, 2], tree, steps, sigma, rec, df[:, 3], df[1:, 1])
-print('Cliquet option on ISP: ', priceBS)
+priceCliquet = opt.priceCliquetBS(S0, df[:, 2], tree, steps, sigma, rec, df[:, 3], df[1:, 1])
+print('Cliquet option on ISP: ', priceCliquet)

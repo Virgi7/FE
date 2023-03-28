@@ -31,7 +31,7 @@ def priceCliquetBS(S0, disc, tree, n, sigma, rec, SurProb, datesInYears):
     DefProbRec = (SurProb[0: len(SurProb) - 1] - SurProb[1: len(SurProb)]) * rec
     T = len(datesInYears)
     payoff = np.zeros(tree.shape)
-    # we consider the payments as payoff of ATM call options
+    # we consider the payments as payoff of ATM call options, the premium computed with B&S formula
     payoff[0, 0] = BS_CALL(S0, S0, datesInYears[0], - np.log(disc[1])/datesInYears[0], 0, sigma)
     for i in range(1, T):
         for j in range(i * n + 1):

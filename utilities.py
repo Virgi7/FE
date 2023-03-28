@@ -88,9 +88,8 @@ def PrincCompAnalysis(yearlyCovariance, yearlyMeanReturns, weights, H, alpha, nu
     weights_sorted = sort_as(eigenvalues, eigenvalues_sorted, weights)
     mean_sorted = sort_as(eigenvalues, eigenvalues_sorted, yearlyMeanReturns)
     gamma = np.zeros((len(eigenvalues), len(eigenvalues)))
-    for i in range(len(eigenvalues_sorted)):
-        # We order the eigenvectors, the weights in the portfolio and the mean vector following the eigenvalues' order
-        gamma[:, i] = sort_as(eigenvalues, eigenvalues_sorted, eigenvectors[:, i])
+    for i in range(len(eigenvalues)):
+        gamma[i, :] = sort_as(eigenvalues, eigenvalues_sorted, eigenvectors[i, :])
     # Projected weights
     weights_hat = gamma.T.dot(weights_sorted)
     # Projected mean vector
@@ -211,7 +210,7 @@ def sort_as(a, a_sorted, b):
     b_sorted = b
     for i in range(len(a_sorted)):
         # we order the weights of the WHS following the order of the losses
-        b_sorted[i] = b[a.tolist().index(a_sorted[i])]
+        b_sorted[i] = b[:][a.tolist().index(a_sorted[i])]
     return b_sorted
 
 
@@ -243,17 +242,18 @@ def priceCliquetBS(S0, disc, tree, n, sigma, rec, SurProb, datesInYears):
     # probability of up
     q = (1 - d)/(u - d)
     # Survival probabilities for the expires in datesInYears
-    DefProbRec = (SurProb[0: len(SurProb) - 1] - SurProb[1: len(SurProb)]) * rec
+    e_function = (SurProb[0: len(SurProb) - 1] * disc[0: len(SurProb) - 1] - SurProb[1: len(SurProb)] * disc[1: len(SurProb)])
+    B_bar = SurProb[0: len(SurProb) - 1] * disc[0: len(SurProb) - 1]
     T = len(datesInYears)
     payoff = np.zeros(tree.shape)
     # we consider the payments as payoff of ATM call options, the premium computed with B&S formula
-    payoff[0, 0] = BS_CALL(S0, S0, datesInYears[0], - np.log(disc[1])/datesInYears[0], 0, sigma)
+    payoff[0, 0] = BS_CALL(S0, S0, datesInYears[0], -np.log(disc[1])/datesInYears[0], 0, sigma)
     for i in range(1, T):
         for j in range(i * n + 1):
             TTM = datesInYears[i] - datesInYears[i - 1]
-            payoff[j, i] = BS_CALL(tree[j, i-1], tree[j, i-1], TTM, - np.log(disc[i + 1]/disc[i])/TTM, 0, sigma) * bincoeff(i * n, j) * (q ** (i * n - j)) * ((1 - q) ** j)
+            payoff[j, i] = BS_CALL(tree[j, i-1], tree[j, i-1], TTM, - np.log(disc[i + 1] / disc[i]) / TTM, 0, sigma) * bincoeff(i * n, j) * (q ** (i * n - j)) * ((1 - q) ** j)
     # We multiply by the discounts, the survival probabilities and the recovery multiplied by the default probability in each time interval
-    price = payoff * disc[0: len(disc) - 1] * (SurProb[1: len(SurProb)] + DefProbRec)
+    price = payoff * (B_bar + rec * e_function)
     price = sum(sum(price))
     return price
 

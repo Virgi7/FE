@@ -67,7 +67,7 @@ def BS_PUT(S, K, T, r, d, sigma):
 def BS_PUT_delta(S, K, T, r, d, sigma):
     # B&S formula for a put option
     d1 = (np.log(S / K) + (r - d + sigma ** 2 / 2) * T) / (sigma * np.sqrt(T))
-    return - np.exp(-d * T) * st.norm.cdf(-d1)
+    return - np.exp(-d * T) * st.norm.cdf(-d1) #derivative w.r.t. the stock
 
 
 def BS_CALL(S, K, T, r, d, sigma):

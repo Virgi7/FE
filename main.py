@@ -150,5 +150,7 @@ tree = ut.tree_gen(sigma, steps, S0, delta, T)
 # We import the discount factors
 df = pd.read_excel('dat_disc.xlsx')
 df = df.to_numpy()
-priceCliquet = Notional * ut.priceCliquetBS(S0, df[:, 2], tree, steps, sigma, rec, df[:, 3], df[1:, 1])
+priceCliquet = Notional * ut.priceCliquetBS(S0, df[:, 2], tree, steps, sigma, rec, df[:, 3] / df[:, 3], df[1:, 1])
+priceCliquetRec = Notional * ut.priceCliquetBS(S0, df[:, 2], tree, steps, sigma, rec, df[:, 3], df[1:, 1])
 print('Cliquet option on ISP: ', priceCliquet)
+print('Cliquet option on ISP considering the recovery: ', priceCliquetRec)

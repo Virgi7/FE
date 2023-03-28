@@ -1,12 +1,10 @@
 # Functions Assignment 5.0
 import numpy as np
 from scipy.stats import norm
-import utilities_2 as ut2
 from numpy import linalg
 import math
 import scipy.stats as st
 import random
-import option as opt
 
 
 def AnalyticalNormalMeasures(alpha, weights, portfolioValue, riskMeasureTimeIntervalInDay, returns):
@@ -30,7 +28,7 @@ def plausibilityCheck(returns, portfolioWeights, alpha, portfolioValue, riskMeas
     av = np.zeros((len(portfolioWeights), 1))
     sVaR = np.zeros((len(portfolioWeights), 1))
     # number of returns we consider, we will add the returns over the corresponding time intervals
-    added_returns = ut2.aggregateReturns(returns, riskMeasureTimeIntervalInDay)
+    added_returns = aggregateReturns(returns, riskMeasureTimeIntervalInDay)
     for i in range(len(portfolioWeights)):
         # lower quantile (of the i-th risk factor distribution)
         l[i] = np.quantile(added_returns[:, i], 1 - alpha)
@@ -50,7 +48,7 @@ def plausibilityCheck(returns, portfolioWeights, alpha, portfolioValue, riskMeas
 
 
 def HSMeasurements(returns, alpha, weights, portfolioValue, RiskMeasureTimeIntervalInDay):
-    added_returns = ut2.aggregateReturns(returns, RiskMeasureTimeIntervalInDay)
+    added_returns = aggregateReturns(returns, RiskMeasureTimeIntervalInDay)
     # linearized loss of the portfolio, there is no cost term
     loss = - portfolioValue * added_returns.dot(weights)
     # we order the losses in decreasing order
@@ -63,17 +61,17 @@ def HSMeasurements(returns, alpha, weights, portfolioValue, RiskMeasureTimeInter
 
 
 def WHSMeasurements(returns, alpha, Lambda, weights, portfolioValue, RiskMeasureTimeIntervalInDay):
-    added_returns = ut2.aggregateReturns(returns, RiskMeasureTimeIntervalInDay)
+    added_returns = aggregateReturns(returns, RiskMeasureTimeIntervalInDay)
     # weights of the Historical Simulation
-    lambdas = ut2.WHSweights(Lambda, added_returns.shape[0])
+    lambdas = WHSweights(Lambda, added_returns.shape[0])
     # linearized loss of the portfolio multiplied by the weights of the WHS
     loss = -portfolioValue * added_returns.dot(weights)
     # we order the losses in decreasing order
     loss_sorted = sorted(loss, reverse=True)
     # We sort the weights in a way that they correspond to the ordered losses
-    lambdas_sorted = ut2.sort_as(loss, loss_sorted, lambdas)
+    lambdas_sorted = sort_as(loss, loss_sorted, lambdas)
     # we find the greatest i such that sum(lambdas[i:end]) <= 1 - alpha
-    i = ut2.searchLevel(lambdas_sorted, alpha)
+    i = searchLevel(lambdas_sorted, alpha)
     # Var as the i-th loss
     VaR = float(loss_sorted[i])
     # ES as average of losses greater than the VaR
@@ -87,12 +85,12 @@ def PrincCompAnalysis(yearlyCovariance, yearlyMeanReturns, weights, H, alpha, nu
     eigenvalues, eigenvectors = linalg.eig(yearlyCovariance)
     # we order the set of eigenvalues
     eigenvalues_sorted = sorted(eigenvalues, reverse=True)
-    weights_sorted = ut2.sort_as(eigenvalues, eigenvalues_sorted, weights)
-    mean_sorted = ut2.sort_as(eigenvalues, eigenvalues_sorted, yearlyMeanReturns)
+    weights_sorted = sort_as(eigenvalues, eigenvalues_sorted, weights)
+    mean_sorted = sort_as(eigenvalues, eigenvalues_sorted, yearlyMeanReturns)
     gamma = np.zeros((len(eigenvalues), len(eigenvalues)))
     for i in range(len(eigenvalues_sorted)):
         # We order the eigenvectors, the weights in the portfolio and the mean vector following the eigenvalues' order
-        gamma[:, i] = ut2.sort_as(eigenvalues, eigenvalues_sorted, eigenvectors[:, i])
+        gamma[:, i] = sort_as(eigenvalues, eigenvalues_sorted, eigenvectors[:, i])
     # Projected weights
     weights_hat = gamma.T.dot(weights_sorted)
     # Projected mean vector
@@ -126,7 +124,7 @@ def FullMonteCarloVaR(logReturns, numberOfShares, numberOfPuts, stockPrice, stri
     # length of the time interval
     delta = int(math.floor(riskMeasureTimeIntervalInYears * NumberOfDaysPerYears))
     # number of returns we consider, we will add the returns over the corresponding time intervals
-    added_returns = ut2.aggregateReturns(logReturns, delta)
+    added_returns = aggregateReturns(logReturns, delta)
     # simulated stock price
     simulated_stock = stockPrice * np.exp(added_returns)
     # Time to maturity of the put options minus the delta in years
@@ -134,9 +132,9 @@ def FullMonteCarloVaR(logReturns, numberOfShares, numberOfPuts, stockPrice, stri
     simulated_put = np.zeros((len(simulated_stock), 1))
     for i in range(len(simulated_stock)):
         # B&S formula applied to the simulated stock price
-        simulated_put[i] = opt.BS_PUT(simulated_stock[i], strike, TTM_simulated, rate, dividend, volatility)
+        simulated_put[i] = BS_PUT(simulated_stock[i], strike, TTM_simulated, rate, dividend, volatility)
     # price today of the put option
-    putPrice = opt.BS_PUT(stockPrice, strike, timeToMaturityInYears, rate, dividend, volatility)
+    putPrice = BS_PUT(stockPrice, strike, timeToMaturityInYears, rate, dividend, volatility)
     # simulated losses
     loss = - numberOfShares * (simulated_stock - stockPrice * np.ones((len(simulated_stock), 1))) - numberOfPuts * (simulated_put - putPrice * np.ones((len(simulated_put), 1)))
     loss_sorted = sorted(loss, reverse=True)
@@ -150,11 +148,145 @@ def DeltaNormalVaR(logReturns, numberOfPuts, stockPrice, strike, rate, dividend,
     # length of the time interval
     delta = int(math.floor(riskMeasureTimeIntervalInYears * NumberOfDaysPerYears))
     # number of returns we consider, we will add the returns over the corresponding time intervals
-    added_returns = ut2.aggregateReturns(logReturns, delta)
-    sens = opt.BS_PUT_delta(stockPrice, strike, timeToMaturityInYears, rate, dividend, volatility) #sensitivity of our portfolio
+    added_returns = aggregateReturns(logReturns, delta)
+    # sensitivity of our portfolio
+    sens = BS_PUT_delta(stockPrice, strike, timeToMaturityInYears, rate, dividend, volatility)
     # simulated linearized losses
     loss = - numberOfPuts * stockPrice * sens * added_returns
     loss_sorted = sorted(loss, reverse=True)
     # VaR as the 1 - alpha quantile of the loss distribution
     VaR = np.quantile(loss_sorted, alpha)
     return VaR
+
+
+def read_our_CSV(df, name_stocks, dates_num, dates_den):
+    # we fill the missing values of the stocks with the previous known ones
+    df.fillna(method='ffill', inplace=True)
+    # We select stocks properly in order to perform the right computation of the returns
+    df_ptf = df[dates_num[0]:dates_num[1]]  # we selected 3y from 20-03-2019 bckwd up to 22-03-2016
+    df_ptf = df_ptf.loc[:, name_stocks]  # we select only the 4 columns corresponding to Adidas, Allianz, Munich RE
+    # and l'Oreal
+    # we selected 3y from one day before 20-03-2019 (19-03-2019) up one day before the last date of df_ptf (21-03-2016)
+    df_den = df[dates_den[0]:dates_den[1]]
+    df_den = df_den.loc[:, name_stocks]
+    # we pass to numpy arrays to perform the logarithm
+    np_den = df_den.to_numpy()
+    np_num = df_ptf.to_numpy()
+    return np_num, np_den
+
+
+def ZeroRate(dates, discounts, date):
+    # dates is in days
+    # discounts is the set of corresponding discount factors at given dates
+    # date is the date where we want to know the discount factor is in years
+    datesyears = (dates[1::] - dates[0]) / 365
+    zeros = np.log(discounts[1::]) / datesyears
+    return np.interp(date, datesyears, zeros)
+
+
+def aggregateReturns(returns, delta):
+    # Number of returns we consider
+    samples = int(returns.shape[0] / delta)
+    added_returns = np.zeros((samples, returns.shape[1]))
+    # We add the returns in each range (not overlapped)
+    for i in range(samples):
+        for j in range(i * delta, ((i + 1) * delta)):
+            # we add the returns over the time interval [i, i + RiskMeasureTimeIntervalInDay]
+            added_returns[i, :] += returns[j, :]
+    return added_returns
+
+
+def WHSweights(Lambda, n):
+    # normalization constant
+    C = (1 - Lambda) / (1 - Lambda ** n)
+    # weights of the Weighted Historical Simulation
+    lambdas = np.zeros((n, 1))
+    for i in range(n):
+        lambdas[i] = C * Lambda ** i
+    return lambdas
+
+
+def sort_as(a, a_sorted, b):
+    # Gives a version of b sorted as a_sorted
+    b_sorted = b
+    for i in range(len(a_sorted)):
+        # we order the weights of the WHS following the order of the losses
+        b_sorted[i] = b[a.tolist().index(a_sorted[i])]
+    return b_sorted
+
+
+def searchLevel(weights, alpha):
+    # we find the greatest i such that sum(lambdas[i:end]) <= 1 - alpha
+    i = -1
+    weights_sum = 0
+    while weights_sum <= (1 - alpha):
+        i += 1
+        weights_sum += weights[i]
+    return i
+
+
+def tree_gen(sigma, steps, S0, delta, T):  # T è la maturity
+    u = math.exp(sigma*math.sqrt(delta/steps))  # Delta = 1 year/n = number of steps for each year
+    d = math.exp(-sigma*math.sqrt(delta/steps))
+    tree = np.zeros((int(steps*T/delta + 1), int(steps*T/delta + 1)))
+    tree[0][0] = S0
+    for i in range(1, int(steps*T/delta) + 1):
+        for j in range(i + 1):
+            tree[j][i] = S0 * (u ** (i - j)) * (d ** j)
+    return tree[:, range(steps, steps * T + 1, steps)]
+
+
+def priceCliquetBS(S0, disc, tree, n, sigma, rec, SurProb, datesInYears):
+    # up and down in the tree
+    u = math.exp(sigma * math.sqrt(1 / n))
+    d = math.exp(-sigma * math.sqrt(1 / n))
+    # probability of up
+    q = (1 - d)/(u - d)
+    # Survival probabilities for the expires in datesInYears
+    DefProbRec = (SurProb[0: len(SurProb) - 1] - SurProb[1: len(SurProb)]) * rec
+    T = len(datesInYears)
+    payoff = np.zeros(tree.shape)
+    # we consider the payments as payoff of ATM call options, the premium computed with B&S formula
+    payoff[0, 0] = BS_CALL(S0, S0, datesInYears[0], - np.log(disc[1])/datesInYears[0], 0, sigma)
+    for i in range(1, T):
+        for j in range(i * n + 1):
+            TTM = datesInYears[i] - datesInYears[i - 1]
+            payoff[j, i] = BS_CALL(tree[j, i-1], tree[j, i-1], TTM, - np.log(disc[i + 1]/disc[i])/TTM, 0, sigma) * bincoeff(i * n, j) * (q ** (i * n - j)) * ((1 - q) ** j)
+    # We multiply by the discounts, the survival probabilities and the recovery multiplied by the default probability in each time interval
+    price = payoff * disc[0: len(disc) - 1] * (SurProb[1: len(SurProb)] + DefProbRec)
+    price = sum(sum(price))
+    return price
+
+
+def bincoeff(n, k):
+    if k == 0 or k == n:
+        coeff = 1
+    else:
+        if k > n:
+            coeff = 0
+        else:
+            a = math.factorial(n)
+            b = math.factorial(k)
+            c = math.factorial(n - k)
+            coeff = a / (b * c)
+    return coeff
+
+
+def BS_PUT(S, K, T, r, d, sigma):
+    # B&S formula for a put option
+    d1 = (np.log(S / K) + (r - d + sigma ** 2 / 2) * T) / (sigma * np.sqrt(T))
+    d2 = d1 - sigma * np.sqrt(T)
+    return K * np.exp(-r * T) * st.norm.cdf(-d2) - S * np.exp(-d * T) * st.norm.cdf(-d1)
+
+
+def BS_PUT_delta(S, K, T, r, d, sigma):
+    # B&S formula for a put option
+    d1 = (np.log(S / K) + (r - d + sigma ** 2 / 2) * T) / (sigma * np.sqrt(T))
+    return - np.exp(-d * T) * st.norm.cdf(-d1)  # Derivative w.r.t. the stock
+
+
+def BS_CALL(S, K, T, r, d, sigma):
+    # B&S formula for a put option
+    d1 = (np.log(S / K) + (r - d + sigma ** 2 / 2) * T) / (sigma * np.sqrt(T))
+    d2 = d1 - sigma * np.sqrt(T)
+    return S * np.exp(-d * T) * st.norm.cdf(d1) - K * np.exp(-r * T) * st.norm.cdf(d2)

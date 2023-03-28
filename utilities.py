@@ -63,3 +63,12 @@ def plausibilityCheck(returns, portfolioWeights, alpha, portfolioValue, riskMeas
     # VaR
     VaR = math.sqrt(sVaR.T.dot(C).dot(sVaR))
     return VaR
+
+
+def ZeroRate(dates, discounts, date):
+    # dates is in days
+    # discounts is the set of corresponding discount factors at given dates
+    # date is the date where we want to know the discount factor is in years
+    datesyears = (dates[1::] - dates[0]) / 365
+    zeros = np.log(discounts[1::]) / datesyears
+    return np.interp(date, datesyears, zeros)

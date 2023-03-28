@@ -84,8 +84,8 @@ def PrincCompAnalysis(yearlyCovariance, yearlyMeanReturns, weights, H, alpha, nu
     # reduced mean
     mean_red = H * sum(mean_hat[0: numberOfPrincipalComponents] * weights_hat[0: numberOfPrincipalComponents])
     # VaR and ES with the usual formulas
-    VaR = float(portfolioValue * (mean_red + sigma_red * st.norm.ppf(alpha)))
-    ES = float(portfolioValue * (mean_red + sigma_red * st.norm.pdf(st.norm.ppf(1 - alpha)) / (1 - alpha)))
+    VaR = float(portfolioValue * (-mean_red + sigma_red * st.norm.ppf(alpha)))
+    ES = float(portfolioValue * (-mean_red + sigma_red * st.norm.pdf(st.norm.ppf(1 - alpha)) / (1 - alpha)))
     return ES, VaR
 
 

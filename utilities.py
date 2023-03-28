@@ -151,8 +151,7 @@ def DeltaNormalVaR(logReturns, numberOfPuts, stockPrice, strike, rate, dividend,
     delta = int(math.floor(riskMeasureTimeIntervalInYears * NumberOfDaysPerYears))
     # number of returns we consider, we will add the returns over the corresponding time intervals
     added_returns = ut2.aggregateReturns(logReturns, delta)
-    # Time to maturity of the put options minus the delta in years
-    sens = opt.BS_PUT_delta(stockPrice, strike, timeToMaturityInYears, rate, dividend, volatility)
+    sens = opt.BS_PUT_delta(stockPrice, strike, timeToMaturityInYears, rate, dividend, volatility) #sensitivity of our portfolio
     # simulated linearized losses
     loss = - numberOfPuts * stockPrice * sens * added_returns
     loss_sorted = sorted(loss, reverse=True)

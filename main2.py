@@ -130,13 +130,16 @@ print("mc", VaR_MC, VaR_DN)
 
 
 #EXERCISE 3
+#Prameters
 sigma = 0.25
 steps = 34
 S0 = 2.41
 delta = 1
 T = 4
 rec = 0.4
+#Tree construction
 tree= opt.tree_gen(sigma, steps, S0, delta, T)
+#We read the excel file containing the dates expressed in years, the discounts and the survival probabilities extracted by the bootstrap
 df = pd.read_excel('dat_disc.xlsx')
 df=df.to_numpy()
 priceBS = opt.priceCliquetBS(S0, df[:,2], tree, steps, sigma, rec, df[:,3], df[1:,1])

@@ -10,10 +10,9 @@ import scipy.stats as st
 # BS_CALL(S, K, T, r, d, sigma) B&S price for Call option
 
 
-def tree_gen(sigma, steps, S0, delta, T):# T è la maturity
-    u = math.exp(sigma*math.sqrt(delta/steps))# Delta = 1 year/n = number of steps for each year
+def tree_gen(sigma, steps, S0, delta, T):  # T è la maturity
+    u = math.exp(sigma*math.sqrt(delta/steps))  # Delta = 1 year/n = number of steps for each year
     d = math.exp(-sigma*math.sqrt(delta/steps))
-    q = (1 - d) / (u - d)
     tree = np.zeros((int(steps*T/delta + 1), int(steps*T/delta + 1)))
     tree[0][0] = S0
     for i in range(1, int(steps*T/delta) + 1):

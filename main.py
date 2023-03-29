@@ -91,7 +91,7 @@ n = range(1, 7)  # Parameter used for the PCA
 ES_PCA = np.zeros((len(n), 1))
 VaR_PCA = np.zeros((len(n), 1))
 yearlyCovariance = np.cov(logReturns_1c.T)  # We compute the Variance Covariance Matrix of the returns
-yearlyMeanReturns = np.mean(logReturns_1c, axis=0).reshape((20, 1))  # We compute the mean of each
+yearlyMeanReturns = np.mean(logReturns_1c, axis=0).reshape((20, 1))# We compute the mean of each
 # column(i.e.columns <-> returns of the stocks) of the matrix of the returns, then we reshape it to have a column vector
 for i in n:
     # for each i in the set of n we compute the PCA increasing at each iteration the number of principal components to be considered

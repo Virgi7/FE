@@ -23,7 +23,6 @@ def AnalyticalNormalMeasures(alpha, weights, portfolioValue, riskMeasureTimeInte
 
 
 def plausibilityCheck(returns, portfolioWeights, alpha, portfolioValue, riskMeasureTimeIntervalInDay):
-    # Initialisation
     l = np.zeros((len(portfolioWeights), 1))
     u = np.zeros((len(portfolioWeights), 1))
     sens = np.zeros((len(portfolioWeights), 1))
@@ -50,7 +49,6 @@ def plausibilityCheck(returns, portfolioWeights, alpha, portfolioValue, riskMeas
 
 
 def HSMeasurements(returns, alpha, weights, portfolioValue, RiskMeasureTimeIntervalInDay):
-    # We add the return in order to have the return over the time interval we consider for the VaR
     added_returns = aggregateReturns(returns, RiskMeasureTimeIntervalInDay)
     # linearized loss of the portfolio, there is no cost term
     loss = - portfolioValue * added_returns.dot(weights)
@@ -64,7 +62,6 @@ def HSMeasurements(returns, alpha, weights, portfolioValue, RiskMeasureTimeInter
 
 
 def WHSMeasurements(returns, alpha, Lambda, weights, portfolioValue, RiskMeasureTimeIntervalInDay):
-    # We add the return in order to have the return over the time interval we consider for the VaR
     added_returns = aggregateReturns(returns, RiskMeasureTimeIntervalInDay)
     # weights of the Historical Simulation
     lambdas = WHSweights(Lambda, added_returns.shape[0])
@@ -98,9 +95,9 @@ def PrincCompAnalysis(yearlyCovariance, yearlyMeanReturns, weights, H, alpha, nu
         all_sorted1=sort_as(eigenvalues, eigenvectors[i, :])
         gamma[i, :] = all_sorted1[:,1]
     # Projected weights
-    weights_hat = eigenvectors.T.dot(weights_sorted)
+    weights_hat = gamma.T.dot(weights_sorted)
     # Projected mean vector
-    mean_hat = gamma.T.dot(mean_sorted)
+    mean_hat = gamma.T.dot(mean_sorted.reshape(len(mean_sorted),1))
     # reduced standard deviation
     sigma_red = (H * (weights_hat[0: numberOfPrincipalComponents] ** 2).T.dot(eigenvalues_sorted[0: numberOfPrincipalComponents])) ** (1 / 2)
     # reduced mean
@@ -159,7 +156,6 @@ def DeltaNormalVaR(logReturns, numberOfShares, numberOfPuts, stockPrice, strike,
     sens = BS_PUT_delta(stockPrice, strike, timeToMaturityInYears, rate, dividend, volatility)
     # simulated linearized losses
     loss = - numberOfPuts * stockPrice * sens * added_returns - 0 * numberOfShares * stockPrice * added_returns
-    # losses ordered in decreasing order
     loss_sorted = sorted(loss, reverse=True)
     # VaR as the 1 - alpha quantile of the loss distribution
     VaR = np.quantile(loss_sorted, alpha)
@@ -177,7 +173,6 @@ def DeltaGammaNormalVaR(logReturns, numberOfShares, numberOfPuts, stockPrice, st
     gamma = BS_PUT_gamma(stockPrice, strike, timeToMaturityInYears, rate, dividend, volatility)
     # simulated linearized losses
     loss = - numberOfPuts * stockPrice * (sens * added_returns + (1/2) * gamma * stockPrice * (added_returns ** 2)) - numberOfShares * stockPrice * added_returns
-    # losses in decreasing order
     loss_sorted = sorted(loss, reverse=True)
     # VaR as the 1 - alpha quantile of the loss distribution
     VaR = np.quantile(loss_sorted, alpha)
@@ -233,12 +228,21 @@ def WHSweights(Lambda, n):
 
 def sort_as(a, b):
     # Gives a version of b sorted as a_sorted
+<<<<<<< HEAD
+    my_array=np.array([a,b])
+    df=pd.DataFrame(my_array).T
+    df=df.rename(columns={0:"a",1:"b"})
+    df_sorted=df.sort_values(by='a',ascending=False)
+    array_1=df_sorted.to_numpy()
+    return array_1
+=======
     b_sorted = b
     for i in range(len(a_sorted)):
         # we order the weights of the WHS following the order of the losses
         b_sorted[i] = b[a.tolist().index(a_sorted[i])]
        # print('i=',i,'indice=',a.tolist().index(a_sorted[i]))
     return b_sorted
+>>>>>>> ffc8b18b3da35f20206276c336ed4f51d68c5218
 
 
 def searchLevel(weights, alpha):

@@ -4,8 +4,6 @@
 # Marrone Tiziano
 # Massaria Michele Domenico
 # Vighi Virginia
-import random
-
 import pandas as pd
 import numpy as np
 from datetime import datetime
@@ -81,10 +79,10 @@ df_1c = df.loc[:, df.columns != 'ADYEN.AS']  # We remove the column correspondin
 df_1c = df_1c.iloc[:, :N]  # We select the first 20 stocks of the new dataset
 name_stocks1c = df_1c.columns
 np_num1c, np_den1c = ut.read_our_CSV(df, name_stocks1c, dates_num1, dates_den1)
-logReturns_1c = np.log(np_num1c/np_den1c)
+logReturns_1c = np.log(np_num1c / np_den1c)
 n_asset1c = len(name_stocks1c)
 weights_1c = np.ones((n_asset1c, 1))/n_asset1c  # We have to consider as above an equally weighted ptf
-ptf_value1c = 1e8
+ptf_value1c = 10 ** 8
 days_VaR1c = 10  # Now the VaR must be computed at 10 days
 n = range(1, 21)  # Parameter used for the PCA
 # Initialization
@@ -143,7 +141,7 @@ print("VaR_MC:", VaR_MC, "VaR_DN:", VaR_DN, "VaR_DGN:", VaR_DGN)
 
 # EXERCISE 3, pricing the cliquet option
 sigma = 0.25
-steps = 50
+steps = 25
 S0 = 2.41  # ISP stock price at 31/01/2023
 delta = 1
 T = 4
@@ -154,11 +152,15 @@ df = pd.read_excel('dat_disc.xlsx')
 df = df.to_numpy()
 # Binomial tree used to simulate the underlying dynamics
 tree = ut.tree_gen(sigma, steps, df[1:, 2], S0, delta, T)
-priceCliquet = Notional * ut.priceCliquetTree(S0, df[:, 2], tree, steps, sigma, 0, df[:, 3] / df[:, 3], df[1:, 1])
-priceCliquetRec = Notional * ut.priceCliquetTree(S0, df[:, 2], tree, steps, sigma, rec, df[:, 3], df[1:, 1])
-priceCliquetBlack = Notional * ut.priceCliquetBS(S0, df[:, 2], 0.01, sigma, rec, df[:, 3], df[1:, 1])
-priceCliquetMC = Notional * ut.priceCliquetMC(S0, df[:, 2], 1000, 400, sigma, rec, df[:, 3], df[:, 1])
-print('Cliquet option on ISP: ', priceCliquet)
-print('Cliquet option on ISP considering the recovery: ', priceCliquetRec)
-print('Cliquet option on ISP considering the recovery (B&S): ', priceCliquetBlack)
-print('Cliquet option on ISP considering the recovery (MC): ', priceCliquetMC)
+priceCliquetTree = Notional * ut.priceCliquetTree(S0, df[:, 2], tree, steps, sigma, 0, df[:, 3] / df[:, 3], df[1:, 1])
+priceCliquetBlack = Notional * ut.priceCliquetBS(S0, df[:, 2], 0.02, sigma, 0, df[:, 3] / df[:, 3], df[1:, 1])
+priceCliquetMC = Notional * ut.priceCliquetMC(S0, df[:, 2], 1000, 200, sigma, 0, df[:, 3] / df[:, 3], df[:, 1])
+priceCliquetRecTree = Notional * ut.priceCliquetTree(S0, df[:, 2], tree, steps, sigma, rec, df[:, 3], df[1:, 1])
+priceCliquetRecBlack = Notional * ut.priceCliquetBS(S0, df[:, 2], 0.02, sigma, rec, df[:, 3], df[1:, 1])
+priceCliquetRecMC = Notional * ut.priceCliquetMC(S0, df[:, 2], 1000, 400, sigma, rec, df[:, 3], df[:, 1])
+print('Cliquet option on ISP (Tree): ', priceCliquetTree)
+print('Cliquet option on ISP (B&S): ', priceCliquetBlack)
+print('Cliquet option on ISP (MC): ', priceCliquetMC)
+print('Cliquet option on ISP considering the recovery (Tree): ', priceCliquetRecTree)
+print('Cliquet option on ISP considering the recovery (B&S): ', priceCliquetRecBlack)
+print('Cliquet option on ISP considering the recovery (MC): ', priceCliquetRecMC)

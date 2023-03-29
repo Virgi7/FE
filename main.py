@@ -4,8 +4,6 @@
 # Marrone Tiziano
 # Massaria Michele Domenico
 # Vighi Virginia
-import random
-
 import pandas as pd
 import numpy as np
 from datetime import datetime
@@ -84,14 +82,16 @@ np_num1c, np_den1c = ut.read_our_CSV(df, name_stocks1c, dates_num1, dates_den1)
 logReturns_1c = np.log(np_num1c/np_den1c)
 n_asset1c = len(name_stocks1c)
 weights_1c = np.ones((n_asset1c, 1))/n_asset1c  # We have to consider as above an equally weighted ptf
-ptf_value1c = 1e8
+ptf_value1c = 10 ** 8
 days_VaR1c = 10  # Now the VaR must be computed at 10 days
 n = range(1, 7)  # Parameter used for the PCA
 # Initialization
 ES_PCA = np.zeros((len(n), 1))
 VaR_PCA = np.zeros((len(n), 1))
 yearlyCovariance = np.cov(logReturns_1c.T)  # We compute the Variance Covariance Matrix of the returns
+print(yearlyCovariance)
 yearlyMeanReturns = np.mean(logReturns_1c, axis=0).reshape((20, 1))  # We compute the mean of each
+print(yearlyMeanReturns)
 # column(i.e.columns <-> returns of the stocks) of the matrix of the returns, then we reshape it to have a column vector
 for i in n:
     # for each i in the set of n we compute the PCA increasing at each iteration the number of principal components to be considered

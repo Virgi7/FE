@@ -22,6 +22,7 @@ def AnalyticalNormalMeasures(alpha, weights, portfolioValue, riskMeasureTimeInte
 
 
 def plausibilityCheck(returns, portfolioWeights, alpha, portfolioValue, riskMeasureTimeIntervalInDay):
+    # Initialisation
     l = np.zeros((len(portfolioWeights), 1))
     u = np.zeros((len(portfolioWeights), 1))
     sens = np.zeros((len(portfolioWeights), 1))
@@ -48,6 +49,7 @@ def plausibilityCheck(returns, portfolioWeights, alpha, portfolioValue, riskMeas
 
 
 def HSMeasurements(returns, alpha, weights, portfolioValue, RiskMeasureTimeIntervalInDay):
+    # We add the return in order to have the return over the time interval we consider for the VaR
     added_returns = aggregateReturns(returns, RiskMeasureTimeIntervalInDay)
     # linearized loss of the portfolio, there is no cost term
     loss = - portfolioValue * added_returns.dot(weights)
@@ -61,6 +63,7 @@ def HSMeasurements(returns, alpha, weights, portfolioValue, RiskMeasureTimeInter
 
 
 def WHSMeasurements(returns, alpha, Lambda, weights, portfolioValue, RiskMeasureTimeIntervalInDay):
+    # We add the return in order to have the return over the time interval we consider for the VaR
     added_returns = aggregateReturns(returns, RiskMeasureTimeIntervalInDay)
     # weights of the Historical Simulation
     lambdas = WHSweights(Lambda, added_returns.shape[0])
@@ -152,6 +155,7 @@ def DeltaNormalVaR(logReturns, numberOfShares, numberOfPuts, stockPrice, strike,
     sens = BS_PUT_delta(stockPrice, strike, timeToMaturityInYears, rate, dividend, volatility)
     # simulated linearized losses
     loss = - numberOfPuts * stockPrice * sens * added_returns - 0 * numberOfShares * stockPrice * added_returns
+    # losses ordered in decreasing order
     loss_sorted = sorted(loss, reverse=True)
     # VaR as the 1 - alpha quantile of the loss distribution
     VaR = np.quantile(loss_sorted, alpha)
@@ -169,6 +173,7 @@ def DeltaGammaNormalVaR(logReturns, numberOfShares, numberOfPuts, stockPrice, st
     gamma = BS_PUT_gamma(stockPrice, strike, timeToMaturityInYears, rate, dividend, volatility)
     # simulated linearized losses
     loss = - numberOfPuts * stockPrice * (sens * added_returns + (1/2) * gamma * stockPrice * (added_returns ** 2)) - numberOfShares * stockPrice * added_returns
+    # losses in decreasing order
     loss_sorted = sorted(loss, reverse=True)
     # VaR as the 1 - alpha quantile of the loss distribution
     VaR = np.quantile(loss_sorted, alpha)

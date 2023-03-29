@@ -84,7 +84,7 @@ n_asset1c = len(name_stocks1c)
 weights_1c = np.ones((n_asset1c, 1))/n_asset1c  # We have to consider as above an equally weighted ptf
 ptf_value1c = 10 ** 8
 days_VaR1c = 10  # Now the VaR must be computed at 10 days
-n = range(1, 21)  # Parameter used for the PCA
+n = range(1, 7)  # Parameter used for the PCA
 # Initialization
 ES_PCA = np.zeros((len(n), 1))
 VaR_PCA = np.zeros((len(n), 1))

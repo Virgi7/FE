@@ -65,13 +65,12 @@ def WHSMeasurements(returns, alpha, Lambda, weights, portfolioValue, RiskMeasure
     added_returns = aggregateReturns(returns, RiskMeasureTimeIntervalInDay)
     # weights of the Historical Simulation
     lambdas = WHSweights(Lambda, added_returns.shape[0])
-    #print(type(lambdas))
     # linearized loss of the portfolio multiplied by the weights of the WHS
     loss = -portfolioValue * added_returns.dot(weights)
     # We sort the weights in a way that they correspond to the ordered losses
-    all_sorted = sort_as(loss.reshape(len(loss)),lambdas.reshape(len(loss)))
-    loss_sorted=all_sorted[:,0]
-    lambdas_sorted=all_sorted[:,1]
+    all_sorted = sort_as(loss.reshape(len(loss)), lambdas.reshape(len(loss)))
+    loss_sorted = all_sorted[:, 0]
+    lambdas_sorted = all_sorted[:, 1]
     # we find the greatest i such that sum(lambdas[i:end]) <= 1 - alpha
     i = searchLevel(lambdas_sorted, alpha)
     # Var as the i-th loss
@@ -87,17 +86,17 @@ def PrincCompAnalysis(yearlyCovariance, yearlyMeanReturns, weights, H, alpha, nu
     eigenvalues, eigenvectors = linalg.eig(yearlyCovariance)
     # we order the set of eigenvalues
     all_sorted = sort_as(eigenvalues, yearlyMeanReturns)
-    eigenvalues_sorted=all_sorted[:,0]
-    mean_sorted=all_sorted[:,1]
-    weights_sorted= weights
+    eigenvalues_sorted = all_sorted[:, 0]
+    mean_sorted = all_sorted[:, 1]
+    weights_sorted = weights
     gamma = np.zeros((len(eigenvalues), len(eigenvalues)))
     for i in range(len(eigenvalues)):
-        all_sorted1=sort_as(eigenvalues, eigenvectors[i, :])
-        gamma[i, :] = all_sorted1[:,1]
+        all_sorted1 = sort_as(eigenvalues, eigenvectors[i, :])
+        gamma[i, :] = all_sorted1[:, 1]
     # Projected weights
     weights_hat = gamma.T.dot(weights_sorted)
     # Projected mean vector
-    mean_hat = gamma.T.dot(mean_sorted.reshape(len(mean_sorted),1))
+    mean_hat = gamma.T.dot(mean_sorted.reshape(len(mean_sorted), 1))
     # reduced standard deviation
     sigma_red = (H * (weights_hat[0: numberOfPrincipalComponents] ** 2).T.dot(eigenvalues_sorted[0: numberOfPrincipalComponents])) ** (1 / 2)
     # reduced mean
@@ -227,13 +226,12 @@ def WHSweights(Lambda, n):
 
 
 def sort_as(a, b):
-    my_array=np.array([a,b])
-    df=pd.DataFrame(my_array).T
-    df=df.rename(columns={0:"a",1:"b"})
-    df_sorted=df.sort_values(by='a',ascending=False)
-    array_1=df_sorted.to_numpy()
+    my_array = np.array([a, b])
+    df = pd.DataFrame(my_array).T
+    df = df.rename(columns={0: "a", 1: "b"})
+    df_sorted = df.sort_values(by='a', ascending=False)
+    array_1 = df_sorted.to_numpy()
     return array_1
-
 
 
 def searchLevel(weights, alpha):
@@ -297,10 +295,11 @@ def priceCliquetBS(S0, disc, h, sigma, rec, SurProb, datesInYears):
         else:
             y = -6
             rate = - np.log(disc[i + 1] / disc[i]) / TTM
+            S_1 = S0 * np.exp(- (sigma ** 2 / 2) * datesInYears[i] + sigma * np.sqrt(datesInYears[i]) * (y - h)) / disc[i]
             while y <= 6:
                 S = S0 * np.exp(- (sigma ** 2 / 2) * datesInYears[i] + sigma * np.sqrt(datesInYears[i]) * y) / disc[i]
-                S_1 = S0 * np.exp(- (sigma ** 2 / 2) * datesInYears[i] + sigma * np.sqrt(datesInYears[i]) * (y - h)) / disc[i]
                 payoff[i] += (BS_CALL(S, S, TTM, rate, 0, sigma) * st.norm.pdf(y) + BS_CALL(S_1, S_1, TTM, rate, 0, sigma) * st.norm.pdf(y - h)) * h / 2
+                S_1 = S
                 y = y + h
     # We multiply by the discounts, the survival probabilities and the recovery multiplied by the default probability in each time interval
     price = float((B_bar + rec * e_function).dot(payoff))

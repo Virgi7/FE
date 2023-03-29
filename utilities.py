@@ -1,5 +1,6 @@
 # Functions Assignment 5.0
 import numpy as np
+import pandas as pd
 from scipy.stats import norm
 from numpy import linalg
 import math
@@ -22,6 +23,7 @@ def AnalyticalNormalMeasures(alpha, weights, portfolioValue, riskMeasureTimeInte
 
 
 def plausibilityCheck(returns, portfolioWeights, alpha, portfolioValue, riskMeasureTimeIntervalInDay):
+    # Initialisation
     l = np.zeros((len(portfolioWeights), 1))
     u = np.zeros((len(portfolioWeights), 1))
     sens = np.zeros((len(portfolioWeights), 1))
@@ -48,6 +50,7 @@ def plausibilityCheck(returns, portfolioWeights, alpha, portfolioValue, riskMeas
 
 
 def HSMeasurements(returns, alpha, weights, portfolioValue, RiskMeasureTimeIntervalInDay):
+    # We add the return in order to have the return over the time interval we consider for the VaR
     added_returns = aggregateReturns(returns, RiskMeasureTimeIntervalInDay)
     # linearized loss of the portfolio, there is no cost term
     loss = - portfolioValue * added_returns.dot(weights)
@@ -61,15 +64,17 @@ def HSMeasurements(returns, alpha, weights, portfolioValue, RiskMeasureTimeInter
 
 
 def WHSMeasurements(returns, alpha, Lambda, weights, portfolioValue, RiskMeasureTimeIntervalInDay):
+    # We add the return in order to have the return over the time interval we consider for the VaR
     added_returns = aggregateReturns(returns, RiskMeasureTimeIntervalInDay)
     # weights of the Historical Simulation
     lambdas = WHSweights(Lambda, added_returns.shape[0])
     # linearized loss of the portfolio multiplied by the weights of the WHS
     loss = -portfolioValue * added_returns.dot(weights)
-    # we order the losses in decreasing order
-    loss_sorted = sorted(loss, reverse=True)
+    #print(lambdas,loss)
     # We sort the weights in a way that they correspond to the ordered losses
-    lambdas_sorted = sort_as(loss, loss_sorted, lambdas)
+    all_sorted = sort_as(loss.T, lambdas.T)
+    loss_sorted=all_sorted[:,0]
+    lambdas_sorted=all_sorted[:,1]
     # we find the greatest i such that sum(lambdas[i:end]) <= 1 - alpha
     i = searchLevel(lambdas_sorted, alpha)
     # Var as the i-th loss
@@ -84,14 +89,16 @@ def PrincCompAnalysis(yearlyCovariance, yearlyMeanReturns, weights, H, alpha, nu
     # spectral decomposition of the variance covariance matrix
     eigenvalues, eigenvectors = linalg.eig(yearlyCovariance)
     # we order the set of eigenvalues
-    eigenvalues_sorted = sorted(eigenvalues, reverse=True)
-    weights_sorted = sort_as(eigenvalues, eigenvalues_sorted, weights)
-    mean_sorted = sort_as(eigenvalues, eigenvalues_sorted, yearlyMeanReturns)
+    all_sorted = sort_as(eigenvalues, yearlyMeanReturns)
+    eigenvalues_sorted=all_sorted[:,0]
+    mean_sorted=all_sorted[:,1]
+    weights_sorted= weights
     gamma = np.zeros((len(eigenvalues), len(eigenvalues)))
     for i in range(len(eigenvalues)):
-        gamma[i, :] = sort_as(eigenvalues, eigenvalues_sorted, eigenvectors[i, :])
+        all_sorted1=sort_as(eigenvalues, eigenvectors[i, :])
+        gamma[i, :] = all_sorted1[:,1]
     # Projected weights
-    weights_hat = gamma.T.dot(weights_sorted)
+    weights_hat = eigenvectors.T.dot(weights_sorted)
     # Projected mean vector
     mean_hat = gamma.T.dot(mean_sorted)
     # reduced standard deviation
@@ -152,6 +159,7 @@ def DeltaNormalVaR(logReturns, numberOfShares, numberOfPuts, stockPrice, strike,
     sens = BS_PUT_delta(stockPrice, strike, timeToMaturityInYears, rate, dividend, volatility)
     # simulated linearized losses
     loss = - numberOfPuts * stockPrice * sens * added_returns - 0 * numberOfShares * stockPrice * added_returns
+    # losses ordered in decreasing order
     loss_sorted = sorted(loss, reverse=True)
     # VaR as the 1 - alpha quantile of the loss distribution
     VaR = np.quantile(loss_sorted, alpha)
@@ -169,6 +177,7 @@ def DeltaGammaNormalVaR(logReturns, numberOfShares, numberOfPuts, stockPrice, st
     gamma = BS_PUT_gamma(stockPrice, strike, timeToMaturityInYears, rate, dividend, volatility)
     # simulated linearized losses
     loss = - numberOfPuts * stockPrice * (sens * added_returns + (1/2) * gamma * stockPrice * (added_returns ** 2)) - numberOfShares * stockPrice * added_returns
+    # losses in decreasing order
     loss_sorted = sorted(loss, reverse=True)
     # VaR as the 1 - alpha quantile of the loss distribution
     VaR = np.quantile(loss_sorted, alpha)
@@ -222,7 +231,7 @@ def WHSweights(Lambda, n):
     return lambdas
 
 
-def sort_as(a, a_sorted, b):
+def sort_as(a, b):
     # Gives a version of b sorted as a_sorted
     b_sorted = b
     for i in range(len(a_sorted)):

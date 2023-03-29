@@ -1,5 +1,6 @@
 # Functions Assignment 5.0
 import numpy as np
+import pandas as pd
 from scipy.stats import norm
 from numpy import linalg
 import math
@@ -66,10 +67,11 @@ def WHSMeasurements(returns, alpha, Lambda, weights, portfolioValue, RiskMeasure
     lambdas = WHSweights(Lambda, added_returns.shape[0])
     # linearized loss of the portfolio multiplied by the weights of the WHS
     loss = -portfolioValue * added_returns.dot(weights)
-    # we order the losses in decreasing order
-    loss_sorted = sorted(loss, reverse=True)
+    #print(lambdas,loss)
     # We sort the weights in a way that they correspond to the ordered losses
-    lambdas_sorted = sort_as(loss, loss_sorted, lambdas)
+    all_sorted = sort_as(loss.T, lambdas.T)
+    loss_sorted=all_sorted[:,0]
+    lambdas_sorted=all_sorted[:,1]
     # we find the greatest i such that sum(lambdas[i:end]) <= 1 - alpha
     i = searchLevel(lambdas_sorted, alpha)
     # Var as the i-th loss
@@ -84,16 +86,18 @@ def PrincCompAnalysis(yearlyCovariance, yearlyMeanReturns, weights, H, alpha, nu
     # spectral decomposition of the variance covariance matrix
     eigenvalues, eigenvectors = linalg.eig(yearlyCovariance)
     # we order the set of eigenvalues
-    eigenvalues_sorted = sorted(eigenvalues, reverse=True)
-    weights_sorted = sort_as(eigenvalues, eigenvalues_sorted, weights)
-    mean_sorted = sort_as(eigenvalues, eigenvalues_sorted, yearlyMeanReturns)
+    all_sorted = sort_as(eigenvalues, yearlyMeanReturns)
+    eigenvalues_sorted=all_sorted[:,0]
+    mean_sorted=all_sorted[:,1]
+    weights_sorted= weights
     gamma = np.zeros((len(eigenvalues), len(eigenvalues)))
     for i in range(len(eigenvalues)):
-        gamma[i, :] = sort_as(eigenvalues, eigenvalues_sorted, eigenvectors[i, :])
+        all_sorted1=sort_as(eigenvalues, eigenvectors[i, :])
+        gamma[i, :] = all_sorted1[:,1]
     # Projected weights
     weights_hat = gamma.T.dot(weights_sorted)
     # Projected mean vector
-    mean_hat = gamma.T.dot(mean_sorted)
+    mean_hat = gamma.T.dot(mean_sorted.reshape(len(mean_sorted),1))
     # reduced standard deviation
     sigma_red = (H * (weights_hat[0: numberOfPrincipalComponents] ** 2).T.dot(eigenvalues_sorted[0: numberOfPrincipalComponents])) ** (1 / 2)
     # reduced mean
@@ -222,13 +226,14 @@ def WHSweights(Lambda, n):
     return lambdas
 
 
-def sort_as(a, a_sorted, b):
+def sort_as(a, b):
     # Gives a version of b sorted as a_sorted
-    b_sorted = b
-    for i in range(len(a_sorted)):
-        # we order the weights of the WHS following the order of the losses
-        b_sorted[i] = b[:][a.tolist().index(a_sorted[i])]
-    return b_sorted
+    my_array=np.array([a,b])
+    df=pd.DataFrame(my_array).T
+    df=df.rename(columns={0:"a",1:"b"})
+    df_sorted=df.sort_values(by='a',ascending=False)
+    array_1=df_sorted.to_numpy()
+    return array_1
 
 
 def searchLevel(weights, alpha):

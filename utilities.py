@@ -94,9 +94,9 @@ def PrincCompAnalysis(yearlyCovariance, yearlyMeanReturns, weights, H, alpha, nu
     for i in range(len(eigenvalues)):
         gamma[i, :] = sort_as(eigenvalues, eigenvalues_sorted, eigenvectors[i, :])
     # Projected weights
-    weights_hat = gamma.T.dot(weights_sorted)
+    weights_hat = eigenvectors.T.dot(weights_sorted)
     # Projected mean vector
-    mean_hat = gamma.T.dot(mean_sorted)
+    mean_hat = eigenvectors.T.dot(mean_sorted)
     # reduced standard deviation
     sigma_red = (H * (weights_hat[0: numberOfPrincipalComponents] ** 2).T.dot(eigenvalues_sorted[0: numberOfPrincipalComponents])) ** (1 / 2)
     # reduced mean
@@ -232,7 +232,7 @@ def sort_as(a, a_sorted, b):
     b_sorted = b
     for i in range(len(a_sorted)):
         # we order the weights of the WHS following the order of the losses
-        b_sorted[i] = b[:][a.tolist().index(a_sorted[i])]
+        b_sorted[i] = b[a == a_sorted[i]]
     return b_sorted
 
 

@@ -134,12 +134,14 @@ rate = ut.ZeroRate(disc[:, 0], disc[:, 1], timeToMaturityInYears)
 # we compute the VaR at 10 days via a Full MonteCarlo approach
 VaR_MC = ut.FullMonteCarloVaR(logReturns_2, numberOfShares, numberOfPuts, stockPrice_2, strike, rate, dividend, volatility, timeToMaturityInYears, riskMeasureTimeIntervalInYears, alpha_2, NumberOfDaysPerYears)
 # We compute the VaR at 10 days via a Delta Normal approach
-VaR_DN = ut.DeltaNormalVaR(logReturns_2, numberOfPuts, stockPrice_2, strike, rate, dividend, volatility, timeToMaturityInYears, riskMeasureTimeIntervalInYears, alpha_2, NumberOfDaysPerYears)
-print("VaR_MC:", VaR_MC, "VaR_DN:", VaR_DN)
+VaR_DN = ut.DeltaNormalVaR(logReturns_2, numberOfShares, numberOfPuts, stockPrice_2, strike, rate, dividend, volatility, timeToMaturityInYears, riskMeasureTimeIntervalInYears, alpha_2, NumberOfDaysPerYears)
+# Delta - Gamma Normal VaR
+VaR_DGN = ut.DeltaGammaNormalVaR(logReturns_2, numberOfShares, numberOfPuts, stockPrice_2, strike, rate, dividend, volatility, timeToMaturityInYears, riskMeasureTimeIntervalInYears, alpha_2, NumberOfDaysPerYears)
+print("VaR_MC:", VaR_MC, "VaR_DN:", VaR_DN, "VaR_DGN:", VaR_DGN)
 
 # EXERCISE 3, pricing the cliquet option
 sigma = 0.25
-steps = 24
+steps = 50
 S0 = 2.41  # ISP stock price at 31/01/2023
 delta = 1
 T = 4
@@ -150,7 +152,13 @@ tree = ut.tree_gen(sigma, steps, S0, delta, T)
 # We import the discount factors
 df = pd.read_excel('dat_disc.xlsx')
 df = df.to_numpy()
-priceCliquet = Notional * ut.priceCliquetBS(S0, df[:, 2], tree, steps, sigma, rec, df[:, 3] / df[:, 3], df[1:, 1])
-priceCliquetRec = Notional * ut.priceCliquetBS(S0, df[:, 2], tree, steps, sigma, rec, df[:, 3], df[1:, 1])
+priceCliquet = Notional * ut.priceCliquetTree(S0, df[:, 2], tree, steps, sigma, 0, df[:, 3] / df[:, 3], df[1:, 1])
+priceCliquetRec = Notional * ut.priceCliquetTree(S0, df[:, 2], tree, steps, sigma, rec, df[:, 3], df[1:, 1])
+priceCliquetBlack = Notional * ut.priceCliquetBS(S0, df[:, 2], 0.01, sigma, rec, df[:, 3], df[1:, 1])
+priceCliquetMC = Notional * ut.priceCliquetMC(S0, df[:, 2], 100000, 100, sigma, rec, df[:, 3], df[:, 1])
 print('Cliquet option on ISP: ', priceCliquet)
 print('Cliquet option on ISP considering the recovery: ', priceCliquetRec)
+print('Cliquet option on ISP considering the recovery (B&S): ', priceCliquetBlack)
+print('Cliquet option on ISP considering the recovery (MC): ', priceCliquetMC)
+
+

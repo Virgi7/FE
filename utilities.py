@@ -228,12 +228,21 @@ def WHSweights(Lambda, n):
 
 def sort_as(a, b):
     # Gives a version of b sorted as a_sorted
+<<<<<<< HEAD
     my_array=np.array([a,b])
     df=pd.DataFrame(my_array).T
     df=df.rename(columns={0:"a",1:"b"})
     df_sorted=df.sort_values(by='a',ascending=False)
     array_1=df_sorted.to_numpy()
     return array_1
+=======
+    b_sorted = b
+    for i in range(len(a_sorted)):
+        # we order the weights of the WHS following the order of the losses
+        b_sorted[i] = b[a.tolist().index(a_sorted[i])]
+       # print('i=',i,'indice=',a.tolist().index(a_sorted[i]))
+    return b_sorted
+>>>>>>> ffc8b18b3da35f20206276c336ed4f51d68c5218
 
 
 def searchLevel(weights, alpha):

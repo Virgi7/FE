@@ -65,11 +65,11 @@ def WHSMeasurements(returns, alpha, Lambda, weights, portfolioValue, RiskMeasure
     added_returns = aggregateReturns(returns, RiskMeasureTimeIntervalInDay)
     # weights of the Historical Simulation
     lambdas = WHSweights(Lambda, added_returns.shape[0])
+    #print(type(lambdas))
     # linearized loss of the portfolio multiplied by the weights of the WHS
     loss = -portfolioValue * added_returns.dot(weights)
-    #print(lambdas,loss)
     # We sort the weights in a way that they correspond to the ordered losses
-    all_sorted = sort_as(loss.T, lambdas.T)
+    all_sorted = sort_as(loss.reshape(len(loss)),lambdas.reshape(len(loss)))
     loss_sorted=all_sorted[:,0]
     lambdas_sorted=all_sorted[:,1]
     # we find the greatest i such that sum(lambdas[i:end]) <= 1 - alpha
@@ -227,22 +227,13 @@ def WHSweights(Lambda, n):
 
 
 def sort_as(a, b):
-    # Gives a version of b sorted as a_sorted
-<<<<<<< HEAD
     my_array=np.array([a,b])
     df=pd.DataFrame(my_array).T
     df=df.rename(columns={0:"a",1:"b"})
     df_sorted=df.sort_values(by='a',ascending=False)
     array_1=df_sorted.to_numpy()
     return array_1
-=======
-    b_sorted = b
-    for i in range(len(a_sorted)):
-        # we order the weights of the WHS following the order of the losses
-        b_sorted[i] = b[a.tolist().index(a_sorted[i])]
-       # print('i=',i,'indice=',a.tolist().index(a_sorted[i]))
-    return b_sorted
->>>>>>> ffc8b18b3da35f20206276c336ed4f51d68c5218
+
 
 
 def searchLevel(weights, alpha):

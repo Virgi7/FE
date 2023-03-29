@@ -4,6 +4,8 @@
 # Marrone Tiziano
 # Massaria Michele Domenico
 # Vighi Virginia
+import random
+
 import pandas as pd
 import numpy as np
 from datetime import datetime
@@ -147,18 +149,16 @@ delta = 1
 T = 4
 rec = 0.4
 Notional = 50 * 10 ** 6
-# Binomial tree used to simulate the underlying dynamics
-tree = ut.tree_gen(sigma, steps, S0, delta, T)
 # We import the discount factors
 df = pd.read_excel('dat_disc.xlsx')
 df = df.to_numpy()
+# Binomial tree used to simulate the underlying dynamics
+tree = ut.tree_gen(sigma, steps, df[1:, 2], S0, delta, T)
 priceCliquet = Notional * ut.priceCliquetTree(S0, df[:, 2], tree, steps, sigma, 0, df[:, 3] / df[:, 3], df[1:, 1])
 priceCliquetRec = Notional * ut.priceCliquetTree(S0, df[:, 2], tree, steps, sigma, rec, df[:, 3], df[1:, 1])
 priceCliquetBlack = Notional * ut.priceCliquetBS(S0, df[:, 2], 0.01, sigma, rec, df[:, 3], df[1:, 1])
-priceCliquetMC = Notional * ut.priceCliquetMC(S0, df[:, 2], 100000, 100, sigma, rec, df[:, 3], df[:, 1])
+priceCliquetMC = Notional * ut.priceCliquetMC(S0, df[:, 2], 1000, 400, sigma, rec, df[:, 3], df[:, 1])
 print('Cliquet option on ISP: ', priceCliquet)
 print('Cliquet option on ISP considering the recovery: ', priceCliquetRec)
 print('Cliquet option on ISP considering the recovery (B&S): ', priceCliquetBlack)
 print('Cliquet option on ISP considering the recovery (MC): ', priceCliquetMC)
-
-

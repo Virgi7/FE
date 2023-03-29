@@ -241,7 +241,7 @@ def searchLevel(weights, alpha):
     return i
 
 
-def tree_gen(sigma, steps, S0, delta, T):  # T è la maturity
+def tree_gen(sigma, steps, DF, S0, delta, T):  # T è la maturity
     u = math.exp(sigma*math.sqrt(delta/steps))  # Delta = 1 year/n = number of steps for each year
     d = math.exp(-sigma*math.sqrt(delta/steps))
     tree = np.zeros((int(steps*T/delta + 1), int(steps*T/delta + 1)))
@@ -249,7 +249,7 @@ def tree_gen(sigma, steps, S0, delta, T):  # T è la maturity
     for i in range(1, int(steps*T/delta) + 1):
         for j in range(i + 1):
             tree[j][i] = S0 * (u ** (i - j)) * (d ** j)
-    return tree[:, range(steps, steps * T + 1, steps)]
+    return tree[:, range(steps, steps * T + 1, steps)] / DF
 
 
 def priceCliquetTree(S0, disc, tree, steps, sigma, rec, SurProb, datesInYears):
@@ -293,12 +293,12 @@ def priceCliquetBS(S0, disc, h, sigma, rec, SurProb, datesInYears):
             y = -6
             rate = - np.log(disc[i + 1] / disc[i]) / TTM
             while y <= 6:
-                S = S0 * np.exp(- (sigma ** 2) * datesInYears[i] / 2 + sigma * datesInYears[i] * y) / disc[i]
-                S_1 = S0 * np.exp(- (sigma ** 2) * datesInYears[i] / 2 + sigma * datesInYears[i] * (y - h)) / disc[i]
+                S = S0 * np.exp(- (sigma ** 2 / 2) * datesInYears[i] + sigma * np.sqrt(datesInYears[i]) * y) / disc[i]
+                S_1 = S0 * np.exp(- (sigma ** 2 / 2) * datesInYears[i] + sigma * np.sqrt(datesInYears[i]) * (y - h)) / disc[i]
                 payoff[i] += (BS_CALL(S, S, TTM, rate, 0, sigma) * st.norm.pdf(y) + BS_CALL(S_1, S_1, TTM, rate, 0, sigma) * st.norm.pdf(y - h)) * h / 2
                 y = y + h
     # We multiply by the discounts, the survival probabilities and the recovery multiplied by the default probability in each time interval
-    price = (B_bar + rec * e_function).dot(payoff)
+    price = float((B_bar + rec * e_function).dot(payoff))
     return price
 
 
@@ -310,11 +310,11 @@ def priceCliquetMC(S0, disc, N, M, sigma, rec, SurProb, datesInYears):
     payoff = np.zeros((T, 1))
     # we consider the payments as payoff of ATM call options, the premium computed with B&S formula
     # then we compute the expectation with respect to the future stock price
-    S = GBMsimulation(N, S0, - np.log(disc[T]) / datesInYears[T], sigma, datesInYears[T], M)
+    S = GBMsimulation(N, S0, disc[1:], sigma, datesInYears[T], M)
     for i in range(T):
         payoff[i] = np.mean((S[:, i + 1] - S[:, i]) * (S[:, i + 1] >= S[:, i]))
     # We multiply by the discounts, the survival probabilities and the recovery multiplied by the default probability in each time interval
-    price = (B_bar + rec * e_function).dot(payoff)
+    price = float((B_bar + rec * e_function).dot(payoff))
     return price
 
 
@@ -358,13 +358,17 @@ def BS_CALL(S, K, T, r, d, sigma):
     return S * np.exp(-d * T) * st.norm.cdf(d1) - K * np.exp(-r * T) * st.norm.cdf(d2)
 
 
-def GBMsimulation(N, S0, r, sigma, T, M):
+def GBMsimulation(N, S0, DF, sigma, T, M):
+    np.random.seed(5)
     # length of the time step
     dt = T / M
     S = S0 * np.ones((N, M + 1))
     for i in range(N):
         W = np.zeros((M + 1, 1))
         for j in range(1, M + 1):
-            W[j] = W[j - 1] + dt * random.random()
-            S[i, j] = S0 * np.exp((r - sigma ** 2 / 2) * dt * j + sigma * W[j])
-    return S[:, range(0, M + 1, int(np.floor(M / T)))]
+            W[j] = W[j - 1] + np.sqrt(dt) * np.random.normal(0, 1)
+            S[i, j] = S0 * np.exp(- (sigma ** 2 / 2) * dt * j + sigma * W[j])
+    S = S[:, range(0, M + 1, int(np.floor(M / T)))]
+    for i in range(N):
+        S[i, 1:] = S[i, 1:] / DF
+    return S

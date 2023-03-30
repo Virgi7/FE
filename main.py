@@ -52,8 +52,8 @@ print("VaR_HSM:", VaR_HSM, "ES_HSM:", ES_HSM)
 VaR_check_HSM = ut.plausibilityCheck(logReturns_1a, weights_1a, alpha_1, ptf_value1a, delta)  # As we did previously we check the result
 print("VaR_check_HSM:", VaR_check_HSM)
 samples_Bootstrap = ut.bootstrapStatistical(Nsim, logReturns_1a)  # We call the Bootstrap function to extract randomly Nsim partial sets of risk factors
-VaR_boot = ut.HSMeasurements(samples_Bootstrap, alpha_1, weights_1a, ptf_value1a, delta)  # Then we pass the samples of risk factors to the HS function to compute the VaR one for each simulation
-print("VaR_Bootstrap:", np.mean(VaR_boot))  # As output, we print the mean of the computed VaRs
+ES_boot, VaR_boot = ut.HSMeasurements(samples_Bootstrap, alpha_1, weights_1a, ptf_value1a, delta)  # Then we pass the samples of risk factors to the HS function to compute the VaR one for each simulation
+print("VaR_Bootstrap:", VaR_boot)  # As output, we print the computed VaR
 
 # EXERCISE 1.b
 # Parameters
@@ -132,8 +132,10 @@ logReturns_2 = np.log(np_num2 / np_den2)
 disc = pd.read_csv('dat_disc.csv', delimiter=';')
 disc = disc.to_numpy()
 rate = ut.ZeroRate(disc[:, 0], disc[:, 1], timeToMaturityInYears)
+rate_delta = ut.ZeroRate(disc[:, 0], disc[:, 1], riskMeasureTimeIntervalInYears)
+rate_fwd = (rate * timeToMaturityInYears - rate_delta * riskMeasureTimeIntervalInYears) / (timeToMaturityInYears - riskMeasureTimeIntervalInYears)
 # we compute the VaR at 10 days via a Full MonteCarlo approach
-VaR_MC = ut.FullMonteCarloVaR(logReturns_2, numberOfShares, numberOfPuts, stockPrice_2, strike, rate, dividend, volatility, timeToMaturityInYears, riskMeasureTimeIntervalInYears, alpha_2, NumberOfDaysPerYears)
+VaR_MC = ut.FullMonteCarloVaR(logReturns_2, numberOfShares, numberOfPuts, stockPrice_2, strike, [rate, rate_fwd], dividend, volatility, timeToMaturityInYears, riskMeasureTimeIntervalInYears, alpha_2, NumberOfDaysPerYears)
 # We compute the VaR at 10 days via a Delta Normal approach
 VaR_DN = ut.DeltaNormalVaR(logReturns_2, numberOfShares, numberOfPuts, stockPrice_2, strike, rate, dividend, volatility, timeToMaturityInYears, riskMeasureTimeIntervalInYears, alpha_2, NumberOfDaysPerYears)
 # Delta - Gamma Normal VaR

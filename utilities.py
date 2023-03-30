@@ -136,9 +136,9 @@ def FullMonteCarloVaR(logReturns, numberOfShares, numberOfPuts, stockPrice, stri
     simulated_put = np.zeros((len(simulated_stock), 1))
     for i in range(len(simulated_stock)):
         # B&S formula applied to the simulated stock price
-        simulated_put[i] = BS_PUT(simulated_stock[i], strike, TTM_simulated, rate, dividend, volatility)
+        simulated_put[i] = BS_PUT(simulated_stock[i], strike, TTM_simulated, rate[1], dividend, volatility)
     # price today of the put option
-    putPrice = BS_PUT(stockPrice, strike, timeToMaturityInYears, rate, dividend, volatility)
+    putPrice = BS_PUT(stockPrice, strike, timeToMaturityInYears, rate[0], dividend, volatility)
     # simulated losses
     loss = - numberOfShares * (simulated_stock - stockPrice * np.ones((len(simulated_stock), 1))) - numberOfPuts * (simulated_put - putPrice * np.ones((len(simulated_put), 1)))
     # VaR as the alpha quantile of the loss distribution

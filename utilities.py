@@ -263,7 +263,7 @@ def priceCliquetTree(S0, disc, tree, steps, sigma, rec, SurProb, datesInYears):
     q = (1 - d)/(u - d)
     # Survival probabilities for the expires in datesInYears
     e_function = (SurProb[0: len(SurProb) - 1] - SurProb[1: len(SurProb)]) * disc[0: len(SurProb) - 1]
-    B_bar = SurProb[1: len(SurProb)] * disc[1: len(SurProb)]
+    B_bar = SurProb[1: len(SurProb)] * disc[0: len(SurProb) - 1]
     T = len(datesInYears)
     payoff = np.zeros(tree.shape)
     # we consider the payments as payoff of ATM call options, the premium computed with B&S formula
@@ -283,7 +283,7 @@ def priceCliquetTree(S0, disc, tree, steps, sigma, rec, SurProb, datesInYears):
 def priceCliquetBS(S0, disc, h, sigma, rec, SurProb, datesInYears):
     # Survival probabilities for the expires in datesInYears
     e_function = (SurProb[0: len(SurProb) - 1] - SurProb[1: len(SurProb)]) * disc[0: len(SurProb) - 1]
-    B_bar = SurProb[1: len(SurProb)] * disc[1: len(SurProb)]
+    B_bar = SurProb[1: len(SurProb)] * disc[0: len(SurProb) - 1]
     T = len(datesInYears)
     payoff = np.zeros((T, 1))
     # we consider the payments as payoff of ATM call options, the premium computed with B&S formula

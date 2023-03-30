@@ -143,7 +143,7 @@ print("VaR_MC:", VaR_MC, "VaR_DN:", VaR_DN, "VaR_DGN:", VaR_DGN)
 # EXERCISE 3, pricing the cliquet option
 sigma = 0.25
 steps = 33
-S0 = 1  # ISP stock price at 31/01/2023
+S0 = 2.41  # ISP stock price at 31/01/2023
 delta = 1
 T = 4
 rec = 0
@@ -155,10 +155,10 @@ df = df.to_numpy()
 tree = ut.tree_gen(sigma, steps, df[1:, 2], S0, delta, T)
 priceCliquetTree = Notional * ut.priceCliquetTree(S0, df[:, 2], tree, steps, sigma, 0, df[:, 3] / df[:, 3], df[1:, 1])
 priceCliquetBlack = Notional * ut.priceCliquetBS(S0, df[:, 2], 0.04, sigma, 0, df[:, 3] / df[:, 3], df[1:, 1])
-priceCliquetMC = Notional * ut.priceCliquetMC(S0, df[:, 2], 100000, 200, sigma, 0, df[:, 3] / df[:, 3], df[:, 1])
+priceCliquetMC = Notional * ut.priceCliquetMC(S0, df[:, 2], 100000, 400, sigma, 0, df[:, 3] / df[:, 3], df[:, 1])
 priceCliquetRecTree = Notional * ut.priceCliquetTree(S0, df[:, 2], tree, steps, sigma, rec, df[:, 3], df[1:, 1])
 priceCliquetRecBlack = Notional * ut.priceCliquetBS(S0, df[:, 2], 0.04, sigma, rec, df[:, 3], df[1:, 1])
-priceCliquetRecMC = Notional * ut.priceCliquetMC(S0, df[:, 2], 100000, 200, sigma, rec, df[:, 3], df[:, 1])
+priceCliquetRecMC = Notional * ut.priceCliquetMC(S0, df[:, 2], 100000, 400, sigma, rec, df[:, 3], df[:, 1])
 print('Cliquet option on ISP (Tree): ', priceCliquetTree)
 print('Cliquet option on ISP (B&S): ', priceCliquetBlack)
 print('Cliquet option on ISP (MC): ', priceCliquetMC)

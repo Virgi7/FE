@@ -224,11 +224,14 @@ def WHSweights(Lambda, n):
 
 
 def sort_as(a, b):
+    #We generate a matrix with the 2 arrays in input
     my_array = np.array([a, b])
+    #We transform it in a dataframe to have the right correspondance between the 2 columns when we sort
+    #We know that is a quite long process but leaving them as numpy, gives us the wrong sorting
     df = pd.DataFrame(my_array).T
-    df = df.rename(columns={0: "a", 1: "b"})
+    df = df.rename(columns={0: "a", 1: "b"}) #Columns name in order to identify them
     df_sorted = df.sort_values(by='a', ascending=False)
-    array_1 = df_sorted.to_numpy()
+    array_1 = df_sorted.to_numpy() #retransformation to a numpy
     return array_1
 
 

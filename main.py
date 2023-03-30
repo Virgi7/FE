@@ -42,7 +42,7 @@ name_stocks1a = ['TTEF.PA', 'DANO.PA', 'SASY.PA', 'VOWG_p.DE']  # We select the 
 stockPrice_1a = df.loc[[sett_date1], name_stocks1a].to_numpy()  # We extract the price of the stocks at the sett_date
 # and then we convert the chosen row in a numpy array to perform calculation
 ptf_value1a = shares1.dot(stockPrice_1a.T)  # Value of the portfolio
-weights_1a = (shares1 * stockPrice_1a / ptf_value1a).T  # We compute the corresponding weight of each stock related with its number of shares
+weights_1a = (shares1 * stockPrice_1a / ptf_value1a).T  # We compute the corresponding weight of each stock related to its number of shares
 np_num1a, np_den1a = ut.read_our_CSV(df, name_stocks1a, dates_num1, dates_den1)
 logReturns_1a = np.log(np_num1a / np_den1a)
 # We compute the VaR and the ES via a Historical Simulation

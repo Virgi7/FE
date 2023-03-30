@@ -49,6 +49,7 @@ def plausibilityCheck(returns, portfolioWeights, alpha, portfolioValue, riskMeas
 
 
 def HSMeasurements(returns, alpha, weights, portfolioValue, RiskMeasureTimeIntervalInDay):
+    # We add the returns over the corresponding time intervals
     added_returns = aggregateReturns(returns, RiskMeasureTimeIntervalInDay)
     # linearized loss of the portfolio, there is no cost term
     loss = - portfolioValue * added_returns.dot(weights)
@@ -62,6 +63,7 @@ def HSMeasurements(returns, alpha, weights, portfolioValue, RiskMeasureTimeInter
 
 
 def WHSMeasurements(returns, alpha, Lambda, weights, portfolioValue, RiskMeasureTimeIntervalInDay):
+    # We add the returns over the corresponding time intervals
     added_returns = aggregateReturns(returns, RiskMeasureTimeIntervalInDay)
     # weights of the Historical Simulation
     lambdas = WHSweights(Lambda, added_returns.shape[0])
@@ -84,7 +86,7 @@ def PrincCompAnalysis(yearlyCovariance, yearlyMeanReturns, weights, H, alpha, nu
                       portfolioValue):
     # spectral decomposition of the variance covariance matrix
     eigenvalues, eigenvectors = linalg.eig(yearlyCovariance)
-    # we order the set of eigenvalues
+    # we order the set of eigenvalues, the mean and the eigenvalues in the same way
     all_sorted = sort_as(eigenvalues, yearlyMeanReturns)
     eigenvalues_sorted = all_sorted[:, 0]
     mean_sorted = all_sorted[:, 1]
@@ -139,9 +141,8 @@ def FullMonteCarloVaR(logReturns, numberOfShares, numberOfPuts, stockPrice, stri
     putPrice = BS_PUT(stockPrice, strike, timeToMaturityInYears, rate, dividend, volatility)
     # simulated losses
     loss = - numberOfShares * (simulated_stock - stockPrice * np.ones((len(simulated_stock), 1))) - numberOfPuts * (simulated_put - putPrice * np.ones((len(simulated_put), 1)))
-    loss_sorted = sorted(loss, reverse=True)
-    # VaR as the 1 - alpha quantile of the loss distribution
-    VaR = np.quantile(loss_sorted, alpha)
+    # VaR as the alpha quantile of the loss distribution
+    VaR = np.quantile(loss, alpha)
     return VaR
 
 
@@ -149,15 +150,14 @@ def DeltaNormalVaR(logReturns, numberOfShares, numberOfPuts, stockPrice, strike,
                    volatility, timeToMaturityInYears, riskMeasureTimeIntervalInYears, alpha, NumberOfDaysPerYears):
     # length of the time interval
     delta = int(math.floor(riskMeasureTimeIntervalInYears * NumberOfDaysPerYears))
-    # number of returns we consider, we will add the returns over the corresponding time intervals
+    # We add the returns over the corresponding time intervals
     added_returns = logReturns * delta ** (1/2)
     # sensitivity of our portfolio
     sens = BS_PUT_delta(stockPrice, strike, timeToMaturityInYears, rate, dividend, volatility)
     # simulated linearized losses
     loss = - numberOfPuts * stockPrice * sens * added_returns - numberOfShares * stockPrice * added_returns
-    loss_sorted = sorted(loss, reverse=True)
     # VaR as the 1 - alpha quantile of the loss distribution
-    VaR = np.quantile(loss_sorted, alpha)
+    VaR = np.quantile(loss, alpha)
     return VaR
 
 
@@ -172,9 +172,8 @@ def DeltaGammaNormalVaR(logReturns, numberOfShares, numberOfPuts, stockPrice, st
     gamma = BS_PUT_gamma(stockPrice, strike, timeToMaturityInYears, rate, dividend, volatility)
     # simulated linearized losses
     loss = - numberOfPuts * stockPrice * (sens * added_returns + (1/2) * gamma * stockPrice * (added_returns ** 2)) - numberOfShares * stockPrice * added_returns
-    loss_sorted = sorted(loss, reverse=True)
     # VaR as the 1 - alpha quantile of the loss distribution
-    VaR = np.quantile(loss_sorted, alpha)
+    VaR = np.quantile(loss, alpha)
     return VaR
 
 
@@ -182,12 +181,11 @@ def read_our_CSV(df, name_stocks, dates_num, dates_den):
     # we fill the missing values of the stocks with the previous known ones
     df.fillna(method='ffill', inplace=True)
     # We select stocks properly in order to perform the right computation of the returns
-    df_ptf = df[dates_num[0]:dates_num[1]]  # we selected 3y from 20-03-2019 bckwd up to 22-03-2016
-    df_ptf = df_ptf.loc[:, name_stocks]  # we select only the 4 columns corresponding to Adidas, Allianz, Munich RE
-    # and l'Oreal
-    # we selected 3y from one day before 20-03-2019 (19-03-2019) up one day before the last date of df_ptf (21-03-2016)
+    df_ptf = df[dates_num[0]:dates_num[1]]  # we selected from today bckwd up to the first date in the time horizon
+    df_ptf = df_ptf.loc[:, name_stocks]  # we select only the columns corresponding to name_stocks
+    # we selected from one day before today up one day before the last date of df_ptf
     df_den = df[dates_den[0]:dates_den[1]]
-    df_den = df_den.loc[:, name_stocks]
+    df_den = df_den.loc[:, name_stocks]  # we select only the columns corresponding to name_stocks
     # we pass to numpy arrays to perform the logarithm
     np_den = df_den.to_numpy()
     np_num = df_ptf.to_numpy()
@@ -247,22 +245,24 @@ def searchLevel(weights, alpha):
 def tree_gen(sigma, steps, DF, S0, delta, T):  # T è la maturity
     u = math.exp(sigma*math.sqrt(delta/steps))  # Delta = 1 year/n = number of steps for each year
     d = math.exp(-sigma*math.sqrt(delta/steps))
+    # Initialization
     tree = np.zeros((int(steps*T/delta + 1), int(steps*T/delta + 1)))
     tree[0][0] = S0
     for i in range(1, int(steps*T/delta) + 1):
         for j in range(i + 1):
+            # i-j=times of up movements, j=times of down movements
             tree[j][i] = S0 * (u ** (i - j)) * (d ** j)
+    # We divide by the discount factors in order to have the stock dynamics
     return tree[:, range(steps, steps * T + 1, steps)] / DF
 
 
-def priceCliquetTree(S0, disc, tree, steps, sigma, rec, SurProb, datesInYears):
+def priceCliquetTree(S0, disc, tree, steps, sigma, SurProb, datesInYears):
     # up and down in the tree
     u = math.exp(sigma * math.sqrt(1 / steps))
     d = math.exp(-sigma * math.sqrt(1 / steps))
     # probability of up
     q = (1 - d)/(u - d)
     # Survival probabilities for the expires in datesInYears
-    e_function = (SurProb[0: len(SurProb) - 1] - SurProb[1: len(SurProb)]) * disc[0: len(SurProb) - 1]
     B_bar = SurProb[1: len(SurProb)] * disc[0: len(SurProb) - 1]
     T = len(datesInYears)
     payoff = np.zeros(tree.shape)
@@ -271,18 +271,19 @@ def priceCliquetTree(S0, disc, tree, steps, sigma, rec, SurProb, datesInYears):
     payoff[0, 0] = BS_CALL(S0, S0, datesInYears[0], rate, 0, sigma)
     for i in range(1, T):
         TTM = datesInYears[i] - datesInYears[i - 1]
+        # risk-free rate relative to the time interval [datesInYears[i - 1] ; datesInYears[i]]
         rate = -np.log(disc[i + 1] / disc[i]) / TTM
         for j in range(i * steps + 1):
+            # Average of all the possible payoffs
             payoff[j, i] = BS_CALL(tree[j, i-1], tree[j, i-1], TTM, rate, 0, sigma) * bincoeff(i * steps, j) * (q ** (i * steps - j)) * ((1 - q) ** j)
     # We multiply by the discounts, the survival probabilities and the recovery multiplied by the default probability in each time interval
-    price = payoff * (B_bar + rec * e_function)
+    price = payoff * B_bar
     price = sum(sum(price))
     return price
 
 
-def priceCliquetBS(S0, disc, h, sigma, rec, SurProb, datesInYears):
+def priceCliquetBS(S0, disc, h, sigma, SurProb, datesInYears):
     # Survival probabilities for the expires in datesInYears
-    e_function = (SurProb[0: len(SurProb) - 1] - SurProb[1: len(SurProb)]) * disc[0: len(SurProb) - 1]
     B_bar = SurProb[1: len(SurProb)] * disc[0: len(SurProb) - 1]
     T = len(datesInYears)
     payoff = np.zeros((T, 1))
@@ -295,32 +296,34 @@ def priceCliquetBS(S0, disc, h, sigma, rec, SurProb, datesInYears):
             rate = -np.log(disc[1]) / TTM
             payoff[0] = BS_CALL(S0, S0, TTM, rate, 0, sigma)
         else:
+            # risk-free rate relative to the time interval [datesInYears[i - 1] ; datesInYears[i]]
             rate = -np.log(disc[i + 1] / disc[i]) / TTM
-            y = -6
+            y = -7
             S_1 = S0 * np.exp(- (sigma ** 2 / 2) * datesInYears[i] + sigma * np.sqrt(datesInYears[i]) * (y - h)) / disc[i]
-            while y <= 6:
+            while y <= 7:
                 S = S0 * np.exp(- (sigma ** 2 / 2) * datesInYears[i] + sigma * np.sqrt(datesInYears[i]) * y) / disc[i]
+                # Trapezoids method
                 payoff[i] += (BS_CALL(S, S, TTM, rate, 0, sigma) * st.norm.pdf(y) + BS_CALL(S_1, S_1, TTM, rate, 0, sigma) * st.norm.pdf(y - h)) * h / 2
                 S_1 = S
                 y = y + h
     # We multiply by the discounts, the survival probabilities and the recovery multiplied by the default probability in each time interval
-    price = float((B_bar + rec * e_function).dot(payoff))
+    price = float(B_bar.dot(payoff))
     return price
 
 
-def priceCliquetMC(S0, disc, N, M, sigma, rec, SurProb, datesInYears):
+def priceCliquetMC(S0, disc, N, sigma, SurProb, datesInYears):
     # Survival probabilities for the expires in datesInYears
-    e_function = (SurProb[0: len(SurProb) - 1] - SurProb[1: len(SurProb)]) * disc[1: len(SurProb)]
     B_bar = SurProb[1: len(SurProb)] * disc[1: len(SurProb)]
     T = len(datesInYears) - 1
     payoff = np.zeros((T, 1))
     # we consider the payments as payoff of ATM call options, the premium computed with B&S formula
     # then we compute the expectation with respect to the future stock price
-    S = GBMsimulation(N, S0, disc, sigma, datesInYears[T], M)
+    S = GBMsimulation(N, S0, disc, sigma, datesInYears)
     for i in range(T):
+        # Average of all the possible payoffs
         payoff[i] = np.mean((S[:, i + 1] - S[:, i]) * (S[:, i + 1] >= S[:, i]))
     # We multiply by the discounts, the survival probabilities and the recovery multiplied by the default probability in each time interval
-    price = float((B_bar + rec * e_function).dot(payoff))
+    price = float(B_bar.dot(payoff))
     return price
 
 
@@ -346,34 +349,36 @@ def BS_PUT(S, K, T, r, d, sigma):
 
 
 def BS_PUT_delta(S, K, T, r, d, sigma):
-    # B&S formula for a put option
+    # B&S formula for a put option delta
     d1 = (np.log(S / K) + (r - d + sigma ** 2 / 2) * T) / (sigma * np.sqrt(T))
     return - np.exp(-d * T) * st.norm.cdf(-d1)  # Derivative w.r.t. the stock
 
 
 def BS_PUT_gamma(S, K, T, r, d, sigma):
-    # B&S formula for a put option
+    # B&S formula for a put option gamma
     d1 = (np.log(S / K) + (r - d + sigma ** 2 / 2) * T) / (sigma * np.sqrt(T))
     return np.exp(-d * T) * st.norm.pdf(-d1) / (S * sigma * np.sqrt(T))  # Derivative w.r.t. the stock
 
 
 def BS_CALL(S, K, T, r, d, sigma):
-    # B&S formula for a put option
+    # B&S formula for a call option
     d1 = (np.log(S / K) + (r - d + sigma ** 2 / 2) * T) / (sigma * np.sqrt(T))
     d2 = d1 - sigma * np.sqrt(T)
     return S * np.exp(-d * T) * st.norm.cdf(d1) - K * np.exp(-r * T) * st.norm.cdf(d2)
 
 
-def GBMsimulation(N, S0, DF, sigma, T, M):
+def GBMsimulation(N, S0, DF, sigma, T):
     np.random.seed(5)
-    # length of the time step
-    dt = T / M
-    S = S0 * np.ones((N, M + 1))
-    W = np.zeros((N, M + 1))
-    for j in range(1, M + 1):
+    M = len(T)
+    # Initialization, S=stock, W=brownian motion
+    S = S0 * np.ones((N, M))
+    W = np.zeros((N, M))
+    for j in range(1, M):
+        dt = T[j] - T[j - 1]
+        # Realization of the brownian motion and the stock at each date in T
         W[:, j] = W[:, j - 1] + np.sqrt(dt) * np.random.normal(0, 1, N)
-        S[:, j] = S0 * np.exp(- (sigma ** 2 / 2) * dt * j + sigma * W[:, j])
-    S = S[:, range(0, M + 1, int(np.floor(M / T)))]
+        S[:, j] = S0 * np.exp(- (sigma ** 2 / 2) * T[j] + sigma * W[:, j])
+    # Divide by the discount factors in order to get the stock
     for i in range(N):
         S[i, :] = S[i, :] / DF
     return S

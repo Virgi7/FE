@@ -52,8 +52,8 @@ print("VaR_HSM:", VaR_HSM, "ES_HSM:", ES_HSM)
 VaR_check_HSM = ut.plausibilityCheck(logReturns_1a, weights_1a, alpha_1, ptf_value1a, delta)  # As we did previously we check the result
 print("VaR_check_HSM:", VaR_check_HSM)
 samples_Bootstrap = ut.bootstrapStatistical(Nsim, logReturns_1a)  # We call the Bootstrap function to extract randomly Nsim partial sets of risk factors
-VaR_boot = ut.HSMeasurements(samples_Bootstrap, alpha_1, weights_1a, ptf_value1a, delta)  # Then we pass the samples of risk factors to the HS function to compute the VaR one for each simulation
-print("VaR_Bootstrap:", np.mean(VaR_boot))  # As output, we print the mean of the computed VaRs
+ES_boot, VaR_boot = ut.HSMeasurements(samples_Bootstrap, alpha_1, weights_1a, ptf_value1a, delta)  # Then we pass the samples of risk factors to the HS function to compute the VaR one for each simulation
+print("VaR_Bootstrap:", VaR_boot)  # As output, we print the computed VaR
 
 # EXERCISE 1.b
 # Parameters
@@ -132,8 +132,10 @@ logReturns_2 = np.log(np_num2 / np_den2)
 disc = pd.read_csv('dat_disc.csv', delimiter=';')
 disc = disc.to_numpy()
 rate = ut.ZeroRate(disc[:, 0], disc[:, 1], timeToMaturityInYears)
+rate_delta = ut.ZeroRate(disc[:, 0], disc[:, 1], riskMeasureTimeIntervalInYears)
+rate_fwd = (rate * timeToMaturityInYears - rate_delta * riskMeasureTimeIntervalInYears) / (timeToMaturityInYears - riskMeasureTimeIntervalInYears)
 # we compute the VaR at 10 days via a Full MonteCarlo approach
-VaR_MC = ut.FullMonteCarloVaR(logReturns_2, numberOfShares, numberOfPuts, stockPrice_2, strike, rate, dividend, volatility, timeToMaturityInYears, riskMeasureTimeIntervalInYears, alpha_2, NumberOfDaysPerYears)
+VaR_MC = ut.FullMonteCarloVaR(logReturns_2, numberOfShares, numberOfPuts, stockPrice_2, strike, [rate, rate_fwd], dividend, volatility, timeToMaturityInYears, riskMeasureTimeIntervalInYears, alpha_2, NumberOfDaysPerYears)
 # We compute the VaR at 10 days via a Delta Normal approach
 VaR_DN = ut.DeltaNormalVaR(logReturns_2, numberOfShares, numberOfPuts, stockPrice_2, strike, rate, dividend, volatility, timeToMaturityInYears, riskMeasureTimeIntervalInYears, alpha_2, NumberOfDaysPerYears)
 # Delta - Gamma Normal VaR
@@ -143,22 +145,21 @@ print("VaR_MC:", VaR_MC, "VaR_DN:", VaR_DN, "VaR_DGN:", VaR_DGN)
 # EXERCISE 3, pricing the cliquet option
 sigma = 0.25
 steps = 33
-S0 = 1  # ISP stock price at 31/01/2023
+S0 = 1  # Stock price at 31/01/2023
 delta = 1
 T = 4
-rec = 0
 Notional = 50 * 10 ** 6
 # We import the discount factors
 df = pd.read_excel('dat_disc.xlsx')
 df = df.to_numpy()
 # Binomial tree used to simulate the underlying dynamics
 tree = ut.tree_gen(sigma, steps, df[1:, 2], S0, delta, T)
-priceCliquetTree = Notional * ut.priceCliquetTree(S0, df[:, 2], tree, steps, sigma, 0, df[:, 3] / df[:, 3], df[1:, 1])
-priceCliquetBlack = Notional * ut.priceCliquetBS(S0, df[:, 2], 0.04, sigma, 0, df[:, 3] / df[:, 3], df[1:, 1])
-priceCliquetMC = Notional * ut.priceCliquetMC(S0, df[:, 2], 100000, 200, sigma, 0, df[:, 3] / df[:, 3], df[:, 1])
-priceCliquetRecTree = Notional * ut.priceCliquetTree(S0, df[:, 2], tree, steps, sigma, rec, df[:, 3], df[1:, 1])
-priceCliquetRecBlack = Notional * ut.priceCliquetBS(S0, df[:, 2], 0.04, sigma, rec, df[:, 3], df[1:, 1])
-priceCliquetRecMC = Notional * ut.priceCliquetMC(S0, df[:, 2], 100000, 200, sigma, rec, df[:, 3], df[:, 1])
+priceCliquetTree = Notional * ut.priceCliquetTree(S0, df[:, 2], tree, steps, sigma, df[:, 3] / df[:, 3], df[1:, 1])
+priceCliquetBlack = Notional * ut.priceCliquetBS(S0, df[:, 2], 0.02, sigma, df[:, 3] / df[:, 3], df[1:, 1])
+priceCliquetMC = Notional * ut.priceCliquetMC(S0, df[:, 2], 100000, sigma, df[:, 3] / df[:, 3], df[:, 1])
+priceCliquetRecTree = Notional * ut.priceCliquetTree(S0, df[:, 2], tree, steps, sigma, df[:, 3], df[1:, 1])
+priceCliquetRecBlack = Notional * ut.priceCliquetBS(S0, df[:, 2], 0.02, sigma, df[:, 3], df[1:, 1])
+priceCliquetRecMC = Notional * ut.priceCliquetMC(S0, df[:, 2], 100000, sigma, df[:, 3], df[:, 1])
 print('Cliquet option on ISP (Tree): ', priceCliquetTree)
 print('Cliquet option on ISP (B&S): ', priceCliquetBlack)
 print('Cliquet option on ISP (MC): ', priceCliquetMC)

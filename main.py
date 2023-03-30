@@ -84,16 +84,17 @@ n_asset1c = len(name_stocks1c)
 weights_1c = np.ones((n_asset1c, 1))/n_asset1c  # We have to consider as above an equally weighted ptf
 ptf_value1c = 10 ** 8
 days_VaR1c = 10  # Now the VaR must be computed at 10 days
+years_VaR1c = 10 / 365  # days_VaR1c expressed in yearfrac
 n = range(1, 7)  # Parameter used for the PCA
 # Initialization
 ES_PCA = np.zeros((len(n), 1))
 VaR_PCA = np.zeros((len(n), 1))
-yearlyCovariance = np.cov(logReturns_1c.T)  # We compute the Variance Covariance Matrix of the returns
-yearlyMeanReturns = np.mean(logReturns_1c, axis=0)  # We compute the mean of each
+yearlyCovariance = np.cov(logReturns_1c.T) * 365  # We compute the Variance Covariance Matrix of the returns
+yearlyMeanReturns = np.mean(logReturns_1c, axis=0) * 365  # We compute the mean of each
 # column(i.e.columns <-> returns of the stocks) of the matrix of the returns, then we reshape it to have a column vector
 for i in n:
     # for each i in the set of n we compute the PCA increasing at each iteration the number of principal components to be considered
-    ES_PCA[i-1], VaR_PCA[i-1] = ut.PrincCompAnalysis(yearlyCovariance, yearlyMeanReturns, weights_1c, days_VaR1c, alpha_1, i, ptf_value1c)
+    ES_PCA[i-1], VaR_PCA[i-1] = ut.PrincCompAnalysis(yearlyCovariance, yearlyMeanReturns, weights_1c, years_VaR1c, alpha_1, i, ptf_value1c)
 print("VaR_PCA:", VaR_PCA)
 print("ES_PCA:", ES_PCA)
 # CHECK
@@ -137,7 +138,7 @@ rate_fwd = (rate * timeToMaturityInYears - rate_delta * riskMeasureTimeIntervalI
 # we compute the VaR at 10 days via a Full MonteCarlo approach
 VaR_MC = ut.FullMonteCarloVaR(logReturns_2, numberOfShares, numberOfPuts, stockPrice_2, strike, [rate, rate_fwd], dividend, volatility, timeToMaturityInYears, riskMeasureTimeIntervalInYears, alpha_2, NumberOfDaysPerYears)
 # We compute the VaR at 10 days via a Delta Normal approach
-VaR_DN = ut.DeltaNormalVaR(logReturns_2, numberOfShares, numberOfPuts, stockPrice_2, strike, rate, dividend, volatility, timeToMaturityInYears, riskMeasureTimeIntervalInYears, alpha_2, NumberOfDaysPerYears)
+VaR_DN = ut.DeltaNormalVaR(logReturns_2, numberOfPuts, stockPrice_2, strike, rate, dividend, volatility, timeToMaturityInYears, riskMeasureTimeIntervalInYears, alpha_2, NumberOfDaysPerYears)
 # Delta - Gamma Normal VaR
 VaR_DGN = ut.DeltaGammaNormalVaR(logReturns_2, numberOfShares, numberOfPuts, stockPrice_2, strike, rate, dividend, volatility, timeToMaturityInYears, riskMeasureTimeIntervalInYears, alpha_2, NumberOfDaysPerYears)
 print("VaR_MC:", VaR_MC, "VaR_DN:", VaR_DN, "VaR_DGN:", VaR_DGN)

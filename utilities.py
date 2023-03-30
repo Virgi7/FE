@@ -146,7 +146,7 @@ def FullMonteCarloVaR(logReturns, numberOfShares, numberOfPuts, stockPrice, stri
     return VaR
 
 
-def DeltaNormalVaR(logReturns, numberOfShares, numberOfPuts, stockPrice, strike, rate, dividend,
+def DeltaNormalVaR(logReturns, numberOfPuts, stockPrice, strike, rate, dividend,
                    volatility, timeToMaturityInYears, riskMeasureTimeIntervalInYears, alpha, NumberOfDaysPerYears):
     # length of the time interval
     delta = int(math.floor(riskMeasureTimeIntervalInYears * NumberOfDaysPerYears))
@@ -155,7 +155,7 @@ def DeltaNormalVaR(logReturns, numberOfShares, numberOfPuts, stockPrice, strike,
     # sensitivity of our portfolio
     sens = BS_PUT_delta(stockPrice, strike, timeToMaturityInYears, rate, dividend, volatility)
     # simulated linearized losses
-    loss = - numberOfPuts * stockPrice * sens * added_returns - numberOfShares * stockPrice * added_returns
+    loss = - numberOfPuts * stockPrice * sens * added_returns
     # VaR as the 1 - alpha quantile of the loss distribution
     VaR = np.quantile(loss, alpha)
     return VaR

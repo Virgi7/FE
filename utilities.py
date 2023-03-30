@@ -65,13 +65,12 @@ def WHSMeasurements(returns, alpha, Lambda, weights, portfolioValue, RiskMeasure
     added_returns = aggregateReturns(returns, RiskMeasureTimeIntervalInDay)
     # weights of the Historical Simulation
     lambdas = WHSweights(Lambda, added_returns.shape[0])
-    #print(type(lambdas))
     # linearized loss of the portfolio multiplied by the weights of the WHS
     loss = -portfolioValue * added_returns.dot(weights)
     # We sort the weights in a way that they correspond to the ordered losses
-    all_sorted = sort_as(loss.reshape(len(loss)),lambdas.reshape(len(loss)))
-    loss_sorted=all_sorted[:,0]
-    lambdas_sorted=all_sorted[:,1]
+    all_sorted = sort_as(loss.reshape(len(loss)), lambdas.reshape(len(loss)))
+    loss_sorted = all_sorted[:, 0]
+    lambdas_sorted = all_sorted[:, 1]
     # we find the greatest i such that sum(lambdas[i:end]) <= 1 - alpha
     i = searchLevel(lambdas_sorted, alpha)
     # Var as the i-th loss
@@ -87,17 +86,17 @@ def PrincCompAnalysis(yearlyCovariance, yearlyMeanReturns, weights, H, alpha, nu
     eigenvalues, eigenvectors = linalg.eig(yearlyCovariance)
     # we order the set of eigenvalues
     all_sorted = sort_as(eigenvalues, yearlyMeanReturns)
-    eigenvalues_sorted=all_sorted[:,0]
-    mean_sorted=all_sorted[:,1]
-    weights_sorted= weights
+    eigenvalues_sorted = all_sorted[:, 0]
+    mean_sorted = all_sorted[:, 1]
+    weights_sorted = weights
     gamma = np.zeros((len(eigenvalues), len(eigenvalues)))
     for i in range(len(eigenvalues)):
-        all_sorted1=sort_as(eigenvalues, eigenvectors[i, :])
-        gamma[i, :] = all_sorted1[:,1]
+        all_sorted1 = sort_as(eigenvalues, eigenvectors[i, :])
+        gamma[i, :] = all_sorted1[:, 1]
     # Projected weights
     weights_hat = gamma.T.dot(weights_sorted)
     # Projected mean vector
-    mean_hat = gamma.T.dot(mean_sorted.reshape(len(mean_sorted),1))
+    mean_hat = gamma.T.dot(mean_sorted.reshape(len(mean_sorted), 1))
     # reduced standard deviation
     sigma_red = (H * (weights_hat[0: numberOfPrincipalComponents] ** 2).T.dot(eigenvalues_sorted[0: numberOfPrincipalComponents])) ** (1 / 2)
     # reduced mean
@@ -127,7 +126,7 @@ def FullMonteCarloVaR(logReturns, numberOfShares, numberOfPuts, stockPrice, stri
     # length of the time interval
     delta = int(math.floor(riskMeasureTimeIntervalInYears * NumberOfDaysPerYears))
     # number of returns we consider, we will add the returns over the corresponding time intervals
-    added_returns = aggregateReturns(logReturns, delta)
+    added_returns = logReturns * delta ** (1/2)
     # simulated stock price
     simulated_stock = stockPrice * np.exp(added_returns)
     # Time to maturity of the put options minus the delta in years
@@ -151,11 +150,11 @@ def DeltaNormalVaR(logReturns, numberOfShares, numberOfPuts, stockPrice, strike,
     # length of the time interval
     delta = int(math.floor(riskMeasureTimeIntervalInYears * NumberOfDaysPerYears))
     # number of returns we consider, we will add the returns over the corresponding time intervals
-    added_returns = aggregateReturns(logReturns, delta)
+    added_returns = logReturns * delta ** (1/2)
     # sensitivity of our portfolio
     sens = BS_PUT_delta(stockPrice, strike, timeToMaturityInYears, rate, dividend, volatility)
     # simulated linearized losses
-    loss = - numberOfPuts * stockPrice * sens * added_returns - 0 * numberOfShares * stockPrice * added_returns
+    loss = - numberOfPuts * stockPrice * sens * added_returns - numberOfShares * stockPrice * added_returns
     loss_sorted = sorted(loss, reverse=True)
     # VaR as the 1 - alpha quantile of the loss distribution
     VaR = np.quantile(loss_sorted, alpha)
@@ -167,7 +166,7 @@ def DeltaGammaNormalVaR(logReturns, numberOfShares, numberOfPuts, stockPrice, st
     # length of the time interval
     delta = int(math.floor(riskMeasureTimeIntervalInYears * NumberOfDaysPerYears))
     # number of returns we consider, we will add the returns over the corresponding time intervals
-    added_returns = aggregateReturns(logReturns, delta)
+    added_returns = logReturns * delta ** (1/2)
     # sensitivity of our portfolio
     sens = BS_PUT_delta(stockPrice, strike, timeToMaturityInYears, rate, dividend, volatility)
     gamma = BS_PUT_gamma(stockPrice, strike, timeToMaturityInYears, rate, dividend, volatility)
@@ -227,13 +226,12 @@ def WHSweights(Lambda, n):
 
 
 def sort_as(a, b):
-    my_array=np.array([a,b])
-    df=pd.DataFrame(my_array).T
-    df=df.rename(columns={0:"a",1:"b"})
-    df_sorted=df.sort_values(by='a',ascending=False)
-    array_1=df_sorted.to_numpy()
+    my_array = np.array([a, b])
+    df = pd.DataFrame(my_array).T
+    df = df.rename(columns={0: "a", 1: "b"})
+    df_sorted = df.sort_values(by='a', ascending=False)
+    array_1 = df_sorted.to_numpy()
     return array_1
-
 
 
 def searchLevel(weights, alpha):
@@ -265,15 +263,17 @@ def priceCliquetTree(S0, disc, tree, steps, sigma, rec, SurProb, datesInYears):
     q = (1 - d)/(u - d)
     # Survival probabilities for the expires in datesInYears
     e_function = (SurProb[0: len(SurProb) - 1] - SurProb[1: len(SurProb)]) * disc[0: len(SurProb) - 1]
-    B_bar = SurProb[1: len(SurProb)] * disc[0: len(SurProb) - 1]
+    B_bar = SurProb[1: len(SurProb)] * disc[1: len(SurProb)]
     T = len(datesInYears)
     payoff = np.zeros(tree.shape)
     # we consider the payments as payoff of ATM call options, the premium computed with B&S formula
-    payoff[0, 0] = BS_CALL(S0, S0, datesInYears[0], -np.log(disc[1])/datesInYears[0], 0, sigma)
+    rate = -np.log(disc[1]) / datesInYears[0]
+    payoff[0, 0] = BS_CALL(S0, S0, datesInYears[0], rate, 0, sigma)
     for i in range(1, T):
+        TTM = datesInYears[i] - datesInYears[i - 1]
+        rate = -np.log(disc[i + 1] / disc[i]) / TTM
         for j in range(i * steps + 1):
-            TTM = datesInYears[i] - datesInYears[i - 1]
-            payoff[j, i] = BS_CALL(tree[j, i-1], tree[j, i-1], TTM, - np.log(disc[i + 1] / disc[i]) / TTM, 0, sigma) * bincoeff(i * steps, j) * (q ** (i * steps - j)) * ((1 - q) ** j)
+            payoff[j, i] = BS_CALL(tree[j, i-1], tree[j, i-1], TTM, rate, 0, sigma) * bincoeff(i * steps, j) * (q ** (i * steps - j)) * ((1 - q) ** j)
     # We multiply by the discounts, the survival probabilities and the recovery multiplied by the default probability in each time interval
     price = payoff * (B_bar + rec * e_function)
     price = sum(sum(price))
@@ -283,7 +283,7 @@ def priceCliquetTree(S0, disc, tree, steps, sigma, rec, SurProb, datesInYears):
 def priceCliquetBS(S0, disc, h, sigma, rec, SurProb, datesInYears):
     # Survival probabilities for the expires in datesInYears
     e_function = (SurProb[0: len(SurProb) - 1] - SurProb[1: len(SurProb)]) * disc[0: len(SurProb) - 1]
-    B_bar = SurProb[1: len(SurProb)] * disc[0: len(SurProb) - 1]
+    B_bar = SurProb[1: len(SurProb)] * disc[1: len(SurProb)]
     T = len(datesInYears)
     payoff = np.zeros((T, 1))
     # we consider the payments as payoff of ATM call options, the premium computed with B&S formula
@@ -292,15 +292,16 @@ def priceCliquetBS(S0, disc, h, sigma, rec, SurProb, datesInYears):
         TTM = datesInYears[i] - datesInYears[i - 1]
         if i == 0:
             TTM = datesInYears[0]
-            rate = - np.log(disc[1]) / TTM
+            rate = -np.log(disc[1]) / TTM
             payoff[0] = BS_CALL(S0, S0, TTM, rate, 0, sigma)
         else:
+            rate = -np.log(disc[i + 1] / disc[i]) / TTM
             y = -6
-            rate = - np.log(disc[i + 1] / disc[i]) / TTM
+            S_1 = S0 * np.exp(- (sigma ** 2 / 2) * datesInYears[i] + sigma * np.sqrt(datesInYears[i]) * (y - h)) / disc[i]
             while y <= 6:
                 S = S0 * np.exp(- (sigma ** 2 / 2) * datesInYears[i] + sigma * np.sqrt(datesInYears[i]) * y) / disc[i]
-                S_1 = S0 * np.exp(- (sigma ** 2 / 2) * datesInYears[i] + sigma * np.sqrt(datesInYears[i]) * (y - h)) / disc[i]
                 payoff[i] += (BS_CALL(S, S, TTM, rate, 0, sigma) * st.norm.pdf(y) + BS_CALL(S_1, S_1, TTM, rate, 0, sigma) * st.norm.pdf(y - h)) * h / 2
+                S_1 = S
                 y = y + h
     # We multiply by the discounts, the survival probabilities and the recovery multiplied by the default probability in each time interval
     price = float((B_bar + rec * e_function).dot(payoff))
@@ -315,7 +316,7 @@ def priceCliquetMC(S0, disc, N, M, sigma, rec, SurProb, datesInYears):
     payoff = np.zeros((T, 1))
     # we consider the payments as payoff of ATM call options, the premium computed with B&S formula
     # then we compute the expectation with respect to the future stock price
-    S = GBMsimulation(N, S0, disc[1:], sigma, datesInYears[T], M)
+    S = GBMsimulation(N, S0, disc, sigma, datesInYears[T], M)
     for i in range(T):
         payoff[i] = np.mean((S[:, i + 1] - S[:, i]) * (S[:, i + 1] >= S[:, i]))
     # We multiply by the discounts, the survival probabilities and the recovery multiplied by the default probability in each time interval
@@ -368,12 +369,11 @@ def GBMsimulation(N, S0, DF, sigma, T, M):
     # length of the time step
     dt = T / M
     S = S0 * np.ones((N, M + 1))
-    for i in range(N):
-        W = np.zeros((M + 1, 1))
-        for j in range(1, M + 1):
-            W[j] = W[j - 1] + np.sqrt(dt) * np.random.normal(0, 1)
-            S[i, j] = S0 * np.exp(- (sigma ** 2 / 2) * dt * j + sigma * W[j])
+    W = np.zeros((N, M + 1))
+    for j in range(1, M + 1):
+        W[:, j] = W[:, j - 1] + np.sqrt(dt) * np.random.normal(0, 1, N)
+        S[:, j] = S0 * np.exp(- (sigma ** 2 / 2) * dt * j + sigma * W[:, j])
     S = S[:, range(0, M + 1, int(np.floor(M / T)))]
     for i in range(N):
-        S[i, 1:] = S[i, 1:] / DF
+        S[i, :] = S[i, :] / DF
     return S

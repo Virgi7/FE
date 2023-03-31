@@ -151,7 +151,7 @@ delta = 1
 T = 4
 Notional = 50 * 10 ** 6
 # We import the discount factors
-df = pd.read_excel('dat_disc.xlsx')
+df = pd.read_excel('dat_disc_Es3.xlsx')
 df = df.to_numpy()
 # Binomial tree used to simulate the underlying dynamics
 tree = ut.tree_gen(sigma, steps, df[1:, 2], S0, delta, T)

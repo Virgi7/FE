@@ -146,7 +146,7 @@ def FullMonteCarloVaR(logReturns, numberOfShares, numberOfPuts, stockPrice, stri
     return VaR
 
 
-def DeltaNormalVaR(logReturns, numberOfPuts, stockPrice, strike, rate, dividend,
+def DeltaNormalVaR(logReturns, numberOfShares, numberOfPuts, stockPrice, strike, rate, dividend,
                    volatility, timeToMaturityInYears, riskMeasureTimeIntervalInYears, alpha, NumberOfDaysPerYears):
     # length of the time interval
     delta = int(math.floor(riskMeasureTimeIntervalInYears * NumberOfDaysPerYears))
@@ -224,14 +224,14 @@ def WHSweights(Lambda, n):
 
 
 def sort_as(a, b):
-    #We generate a matrix with the 2 arrays in input
+    # We generate a matrix with the 2 arrays in input
     my_array = np.array([a, b])
-    #We transform it in a dataframe to have the right correspondance between the 2 columns when we sort
-    #We know that is a quite long process but leaving them as numpy, gives us the wrong sorting
+    # We transform it in a dataframe to have the right correspondence between the 2 columns when we sort
+    # We know that is quite a long process but leaving them as numpy, gives us the wrong sorting
     df = pd.DataFrame(my_array).T
-    df = df.rename(columns={0: "a", 1: "b"}) #Columns name in order to identify them
+    df = df.rename(columns={0: "a", 1: "b"})  # Columns name in order to identify them
     df_sorted = df.sort_values(by='a', ascending=False)
-    array_1 = df_sorted.to_numpy() #retransformation to a numpy
+    array_1 = df_sorted.to_numpy()  # transformation to a numpy
     return array_1
 
 

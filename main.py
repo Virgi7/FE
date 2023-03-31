@@ -138,7 +138,7 @@ rate_fwd = (rate * timeToMaturityInYears - rate_delta * riskMeasureTimeIntervalI
 # we compute the VaR at 10 days via a Full MonteCarlo approach
 VaR_MC = ut.FullMonteCarloVaR(logReturns_2, numberOfShares, numberOfPuts, stockPrice_2, strike, [rate, rate_fwd], dividend, volatility, timeToMaturityInYears, riskMeasureTimeIntervalInYears, alpha_2, NumberOfDaysPerYears)
 # We compute the VaR at 10 days via a Delta Normal approach
-VaR_DN = ut.DeltaNormalVaR(logReturns_2, numberOfPuts, stockPrice_2, strike, rate, dividend, volatility, timeToMaturityInYears, riskMeasureTimeIntervalInYears, alpha_2, NumberOfDaysPerYears)
+VaR_DN = ut.DeltaNormalVaR(logReturns_2, numberOfShares, numberOfPuts, stockPrice_2, strike, rate, dividend, volatility, timeToMaturityInYears, riskMeasureTimeIntervalInYears, alpha_2, NumberOfDaysPerYears)
 # Delta - Gamma Normal VaR
 VaR_DGN = ut.DeltaGammaNormalVaR(logReturns_2, numberOfShares, numberOfPuts, stockPrice_2, strike, rate, dividend, volatility, timeToMaturityInYears, riskMeasureTimeIntervalInYears, alpha_2, NumberOfDaysPerYears)
 print("VaR_MC:", VaR_MC, "VaR_DN:", VaR_DN, "VaR_DGN:", VaR_DGN)
